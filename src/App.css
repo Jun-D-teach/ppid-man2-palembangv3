@@ -1,0 +1,49 @@
+/* Navbar fixed top */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 50;
+  background-color: var(--bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Desktop menu */
+nav > div {
+  display: flex;
+  gap: 20px;
+}
+
+/* Links */
+nav a {
+  text-decoration: none;
+  color: var(--text-h);
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+
+nav a:hover {
+  background-color: var(--accent-bg);
+}
+
+/* Mobile menu */
+@media (max-width: 768px) {
+  nav > div {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  nav a {
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+  }
+}

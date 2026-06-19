@@ -1,0 +1,6 @@
+{
+  "name": "PPID MAN 2 Palembang",
+  "description": "Sistem Informasi Pejabat Pengelola Informasi dan Dokumentasi (PPID) Madrasah Aliyah Negeri 2 Palembang",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
