@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const multer = require("multer");
-const mysql = require("./db");
+const mysqlMock = require("./db");
 const fs = require("fs");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
@@ -35,15 +35,25 @@ if (!fs.existsSync(uploadDir)) {
 
 app.use("/uploads", express.static(uploadDir));
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "u471136757_ppidmandupa",
-  waitForConnections: true,
-  connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
-  queueLimit: 0,
-});
+const useRealDb = (process.env.USE_REAL_DB === "true");
+
+let db;
+if (useRealDb) {
+  const mysqlReal = require("mysql2/promise");
+  console.log("Database Mode: Real MySQL (mysql2/promise)");
+  db = mysqlReal.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
+    queueLimit: 0,
+  });
+} else {
+  console.log("Database Mode: Mock JSON Database (db.json)");
+  db = mysqlMock.createPool();
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
