@@ -17,7 +17,7 @@ const DashboardUser = () => {
   useEffect(() => {
     const loggedInUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
-    if (!loggedInUser || loggedInUser === "undefined" || !token) {
+    if (!loggedInUser || loggedInUser === "undefined" || !token || token === "undefined" || token === "null") {
       navigate("/login");
     } else {
       try {

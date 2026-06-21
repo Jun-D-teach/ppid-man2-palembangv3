@@ -227,7 +227,7 @@ const DashboardAdmin = () => {
     const rawUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
 
-    if (rawUser && rawUser !== "undefined" && token) {
+    if (rawUser && rawUser !== "undefined" && token && token !== "undefined" && token !== "null") {
       try {
         user = JSON.parse(rawUser);
       } catch (e) {
@@ -235,7 +235,7 @@ const DashboardAdmin = () => {
       }
     }
 
-    if (!user || user.role !== "admin" || !token) {
+    if (!user || user.role !== "admin" || !token || token === "undefined" || token === "null") {
       navigate("/login");
       return;
     }

@@ -322,8 +322,8 @@ const Home = () => {
 
                 {nav.submenu && (
                   <ul className="absolute left-0 top-[110%] hidden w-64 border border-gray-100 rounded-xl bg-white py-2 shadow-2xl group-hover:block">
-                    {nav.submenu.map((sub) => (
-                      <li key={sub.id || sub.slug || sub.menu_label}>
+                    {nav.submenu.map((sub, idx) => (
+                      <li key={sub.id || sub.slug || sub.menu_label || idx}>
                         <button
   onClick={() => handleMenuPageClick(sub)}
   className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-50 last:border-0 w-full text-left"
@@ -367,8 +367,9 @@ const Home = () => {
                       <p className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-700">
                         {nav.name}
                       </p>
-                      {nav.submenu?.map((sub) => (
+                      {nav.submenu?.map((sub, idx) => (
                         <button
+  key={sub.id || sub.slug || sub.menu_label || idx}
   onClick={() => handleMenuPageClick(sub)}
   className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-50 last:border-0 w-full text-left"
 >
@@ -503,13 +504,13 @@ const Home = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="lg:w-1/4 flex flex-row lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
-            {infoMenuPages.map((page) => {
+            {infoMenuPages.map((page, index) => {
               const categoryKey = getInfoCategoryKey(page);
               const isActive = activeTab === categoryKey || activeInfoPage?.id === page.id;
 
               return (
                 <button
-                  key={page.id || page.slug || page.menu_label}
+                  key={page.id || page.slug || page.menu_label || index}
                   onClick={() => {
                     setActiveTab(categoryKey);
                    
