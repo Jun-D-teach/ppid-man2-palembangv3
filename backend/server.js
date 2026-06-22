@@ -1525,16 +1525,26 @@ app.use((error, req, res, next) => {
 const PORT = 3000;
 
 async function startServer() {
-  // Mount Vite after API routes
-  if (process.env.NODE_ENV !== "production") {
-    const { createServer: createViteServer } = require("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+  const distPath = path.resolve(__dirname, "../dist");
+  const hasVite = fs.existsSync(path.resolve(__dirname, "../node_modules/vite"));
+
+  // Serve with Vite in development if available, otherwise serve prebuilt static files
+  if (process.env.NODE_ENV !== "production" && hasVite) {
+    try {
+      const { createServer: createViteServer } = require("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.warn("⚠️ Gagal memuat Vite, fallback ke file statis dist:", e.message);
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+    }
   } else {
-    const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
