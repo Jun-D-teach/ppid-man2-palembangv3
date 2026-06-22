@@ -35,25 +35,38 @@ if (!fs.existsSync(uploadDir)) {
 
 app.use("/uploads", express.static(uploadDir));
 
-const useRealDb = (process.env.USE_REAL_DB === "true");
+let useRealDb = (process.env.USE_REAL_DB === "true");
+let db = mysqlMock.createPool(); // Default mock fallback is set immediately for safety
 
-let db;
-if (useRealDb) {
-  const mysqlReal = require("mysql2/promise");
-  console.log("Database Mode: Real MySQL (mysql2/promise)");
-  db = mysqlReal.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
-    queueLimit: 0,
-  });
-} else {
-  console.log("Database Mode: Mock JSON Database (db.json)");
-  db = mysqlMock.createPool();
-}
+const initDatabase = async () => {
+  if (useRealDb) {
+    try {
+      const mysqlReal = require("mysql2/promise");
+      console.log("Database Mode: Attempting Real MySQL Connection...");
+      const realPool = mysqlReal.createPool({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        waitForConnections: true,
+        connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
+        queueLimit: 0,
+        connectTimeout: 5000,
+      });
+      // Test the pool to make sure connection parameters are valid
+      await realPool.query("SELECT 1");
+      db = realPool;
+      console.log("✅ Database Mode: Real MySQL Connected Successfully!");
+    } catch (realDbError) {
+      console.error("❌ Real MySQL Connection failed:", realDbError.message);
+      console.log("🔄 Falling back to Mock JSON Database (db.json)");
+      db = mysqlMock.createPool();
+      useRealDb = false;
+    }
+  } else {
+    console.log("Database Mode: Mock JSON Database (db.json)");
+  }
+};
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -1604,15 +1617,16 @@ async function startServer() {
     });
   }
 
+  await initDatabase();
+
   app.listen(PORT, "0.0.0.0", async () => {
     try {
-      await db.query("SELECT 1");
-      console.log(`✅ Database terkoneksi (${useRealDb ? "Real MySQL" : "Mock JSON"})`);
+      console.log(`✅ Database terinisialisasi (${useRealDb ? "Real MySQL" : "Mock JSON"})`);
       await ensureAllTables();
       await ensureMenuCmsTables();
       console.log("✅ Tabel CMS menu siap");
     } catch (error) {
-      console.error("❌ Gagal koneksi database:", error.message);
+      console.error("❌ Gagal inisialisasi database server:", error.message);
     }
 
     console.log(`🚀 Server berjalan di port ${PORT}`);
