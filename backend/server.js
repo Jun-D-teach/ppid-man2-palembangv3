@@ -1148,6 +1148,59 @@ const slugify = (value = "") =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const ensureAllTables = async () => {
+  if (!useRealDb) return;
+  try {
+    const [tables] = await db.query("SHOW TABLES");
+    const tableNames = tables.map((row) => String(Object.values(row)[0]).toLowerCase());
+
+    if (!tableNames.includes("users") || !tableNames.includes("informasi_beranda")) {
+      console.log("Database empty or missing required tables. Bootstrapping tables from db_ppid_man2.sql...");
+      const sqlPath = path.resolve(__dirname, "../db_ppid_man2.sql");
+      if (fs.existsSync(sqlPath)) {
+        const sqlContent = fs.readFileSync(sqlPath, "utf8");
+        const lines = sqlContent.split("\n");
+        let cleaned = "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (
+            trimmed.startsWith("--") ||
+            trimmed.startsWith("#") ||
+            (trimmed.startsWith("/*") && trimmed.endsWith("*/"))
+          ) {
+            continue;
+          }
+          cleaned += line + "\n";
+        }
+        const queries = cleaned
+          .split(";")
+          .map((q) => q.trim())
+          .filter((q) => q.length > 0);
+
+        for (const queryStr of queries) {
+          try {
+            await db.query(queryStr);
+          } catch (queryErr) {
+            console.error(
+              "Error executing SQL statement during auto-import:",
+              queryStr.substring(0, 80) + "...",
+              "\nError:",
+              queryErr.message
+            );
+          }
+        }
+        console.log("✅ Database bootstrapped successfully from db_ppid_man2.sql!");
+      } else {
+        console.warn("⚠️ Warning: db_ppid_man2.sql was not found at expected path:", sqlPath);
+      }
+    } else {
+      console.log("Database checked: Required tables exist.");
+    }
+  } catch (error) {
+    console.error("❌ Exception during db_ppid_man2.sql auto-bootstrap check:", error.message);
+  }
+};
+
 const ensureMenuCmsTables = async () => {
   await db.query(`
     CREATE TABLE IF NOT EXISTS menu_pages (
@@ -1554,7 +1607,8 @@ async function startServer() {
   app.listen(PORT, "0.0.0.0", async () => {
     try {
       await db.query("SELECT 1");
-      console.log("✅ Database terkoneksi (Mock JSON)");
+      console.log(`✅ Database terkoneksi (${useRealDb ? "Real MySQL" : "Mock JSON"})`);
+      await ensureAllTables();
       await ensureMenuCmsTables();
       console.log("✅ Tabel CMS menu siap");
     } catch (error) {
