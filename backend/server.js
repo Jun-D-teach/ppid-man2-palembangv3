@@ -1095,7 +1095,7 @@ const defaultMenuPages = [
   },
 
   {
-    parent_menu: "LAYANAN",
+    parent_menu: "LAYANAN INFORMASI",
     menu_label: "Prosedur Permohonan",
     slug: "prosedur-permohonan",
     judul: "Prosedur Permohonan",
@@ -1103,7 +1103,7 @@ const defaultMenuPages = [
     position: 1,
   },
   {
-    parent_menu: "LAYANAN",
+    parent_menu: "LAYANAN INFORMASI",
     menu_label: "Prosedur Keberatan",
     slug: "prosedur-keberatan",
     judul: "Prosedur Keberatan",
@@ -1111,7 +1111,7 @@ const defaultMenuPages = [
     position: 2,
   },
   {
-    parent_menu: "LAYANAN",
+    parent_menu: "LAYANAN INFORMASI",
     menu_label: "Biaya Layanan",
     slug: "biaya-layanan",
     judul: "Biaya Layanan",
@@ -1119,7 +1119,7 @@ const defaultMenuPages = [
     position: 3,
   },
   {
-    parent_menu: "LAYANAN",
+    parent_menu: "LAYANAN INFORMASI",
     menu_label: "Hak & Tata Cara",
     slug: "hak-tata-cara",
     judul: "Hak & Tata Cara",
@@ -1246,23 +1246,36 @@ const ensureMenuCmsTables = async () => {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
 
-  const [rows] = await db.query("SELECT COUNT(*) AS total FROM menu_pages");
-  if (Number(rows[0]?.total || 0) === 0) {
-    for (const item of defaultMenuPages) {
-      await db.query(
-        `INSERT INTO menu_pages
-          (parent_menu, menu_label, slug, judul, isi, status_publish, position, is_builtin)
-          VALUES (?, ?, ?, ?, ?, 'Tampil', ?, 1)
-        `,
-        [
-          item.parent_menu,
-          item.menu_label,
-          item.slug,
-          item.judul,
-          item.isi,
-          item.position,
-        ],
-      );
+  // 1. Migrate old LAYANAN parent_menu to LAYANAN INFORMASI
+  try {
+    await db.query(`UPDATE menu_pages SET parent_menu = 'LAYANAN INFORMASI' WHERE parent_menu = 'LAYANAN'`);
+  } catch (err) {
+    console.error("Migration: failed to migrate parent_menu LAYANAN:", err.message);
+  }
+
+  // 2. Seed any missing default menu pages by matching their unique slug
+  for (const item of defaultMenuPages) {
+    try {
+      const [existing] = await db.query("SELECT id FROM menu_pages WHERE slug = ? LIMIT 1", [item.slug]);
+      if (existing.length === 0) {
+        await db.query(
+          `INSERT INTO menu_pages
+            (parent_menu, menu_label, slug, judul, isi, status_publish, position, is_builtin)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+          `,
+          [
+            item.parent_menu,
+            item.menu_label,
+            item.slug,
+            item.judul,
+            item.isi || `Konten ${item.menu_label} belum diisi oleh admin.`,
+            'Tampil',
+            item.position,
+          ],
+        );
+      }
+    } catch (err) {
+      console.error(`Migration: failed to seed default page ${item.slug}:`, err.message);
     }
   }
 };
@@ -1299,7 +1312,7 @@ app.get(
       req.query.includeHidden === "true" && req.user?.role === "admin";
     const where = includeHidden ? "" : "WHERE status_publish = 'Tampil'";
     const [pages] = await db.query(
-      `SELECT * FROM menu_pages ${where} ORDER BY FIELD(parent_menu, 'PROFIL', 'REGULASI', 'INFORMASI PUBLIK', 'LAYANAN', 'LAPORAN'), position ASC, id ASC`,
+      `SELECT * FROM menu_pages ${where} ORDER BY FIELD(parent_menu, 'PROFIL', 'REGULASI', 'INFORMASI PUBLIK', 'LAYANAN', 'LAYANAN INFORMASI', 'LAPORAN'), position ASC, id ASC`,
     );
 
     res.json(await attachMenuPageFiles(pages));
@@ -1329,7 +1342,7 @@ app.get(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const [pages] = await db.query(
-      `SELECT * FROM menu_pages ORDER BY FIELD(parent_menu, 'PROFIL', 'REGULASI', 'INFORMASI PUBLIK', 'LAYANAN', 'LAPORAN'), position ASC, id ASC`,
+      `SELECT * FROM menu_pages ORDER BY FIELD(parent_menu, 'PROFIL', 'REGULASI', 'INFORMASI PUBLIK', 'LAYANAN', 'LAYANAN INFORMASI', 'LAPORAN'), position ASC, id ASC`,
     );
 
     res.json(await attachMenuPageFiles(pages));
