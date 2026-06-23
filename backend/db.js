@@ -333,7 +333,7 @@ const query = async (sql, params = []) => {
   if (sqlUpper.startsWith("INSERT INTO")) {
     const tableNameMatch = sqlUpper.match(/INSERT INTO\s+([A-Za-z0-9_`]+)/);
     if (tableNameMatch) {
-      const tableName = tableNameMatch[1].replace(/[`"']/g, "");
+      const tableName = tableNameMatch[1].replace(/[`"']/g, "").toLowerCase();
       if (!data[tableName]) data[tableName] = [];
 
       // Create new record based on table and values
@@ -414,7 +414,7 @@ const query = async (sql, params = []) => {
   if (sqlUpper.startsWith("UPDATE")) {
     const tableNameMatch = sqlUpper.match(/UPDATE\s+([A-Za-z0-9_`]+)/);
     if (tableNameMatch) {
-      const tableName = tableNameMatch[1].replace(/[`"']/g, "");
+      const tableName = tableNameMatch[1].replace(/[`"']/g, "").toLowerCase();
       if (tableName === "users") {
         // UPDATE users SET password = ? WHERE id = ?
         if (sqlUpper.includes("PASSWORD = ?")) {
@@ -535,7 +535,7 @@ const query = async (sql, params = []) => {
   if (sqlUpper.startsWith("DELETE FROM")) {
     const tableNameMatch = sqlUpper.match(/DELETE FROM\s+([A-Za-z0-9_`]+)/);
     if (tableNameMatch) {
-      const tableName = tableNameMatch[1].replace(/[`"']/g, "");
+      const tableName = tableNameMatch[1].replace(/[`"']/g, "").toLowerCase();
       const id = Number(params[0]);
 
       if (data[tableName]) {
