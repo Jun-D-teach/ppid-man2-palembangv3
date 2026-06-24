@@ -8,7 +8,7 @@
       "email": "dataumumjun@gmail.com",
       "password": "12345",
       "role": "user",
-      "created_at": "2026-06-23T05:56:18.283Z"
+      "created_at": "2026-06-23T06:00:08.671Z"
     },
     {
       "id": 4,
@@ -18,7 +18,7 @@
       "email": "infolayananman2plg@gmail.com",
       "password": "$2a$10$/xyilQEIZDyGbgK8VitizO5YPgzrZya7DwWLYH.9Zyg4HMc5hRoUW",
       "role": "admin",
-      "created_at": "2026-06-23T05:56:18.283Z"
+      "created_at": "2026-06-23T06:00:08.671Z"
     }
   ],
   "informasi_beranda": [
@@ -47,7 +47,7 @@
       "deskripsi": "Dokumen Laporan Akuntabilitas Kinerja Instansi Pemerintah (LAKIP) MAN 2 Palembang tahun 2025.",
       "tahun": "2025",
       "status_publish": "Tampil",
-      "created_at": "2026-06-23T05:56:18.283Z"
+      "created_at": "2026-06-23T06:00:08.671Z"
     }
   ],
   "informasi_publik_berkas": [
@@ -116,7 +116,7 @@
       "status_publish": "Tampil",
       "position": 1,
       "is_builtin": 1,
-      "created_at": "2026-06-23T05:56:18.283Z"
+      "created_at": "2026-06-23T06:00:08.671Z"
     },
     {
       "id": 2,
@@ -128,7 +128,223 @@
       "status_publish": "Tampil",
       "position": 2,
       "is_builtin": 1,
-      "created_at": "2026-06-23T05:56:18.283Z"
+      "created_at": "2026-06-23T06:00:08.671Z"
+    },
+    {
+      "id": 3,
+      "parent_menu": "PROFIL",
+      "menu_label": "Tugas & Fungsi",
+      "slug": "tugas-fungsi",
+      "judul": "Tugas & Fungsi",
+      "isi": "Tugas dan fungsi PPID dapat diedit melalui Panel Admin > Atur Menu Website.",
+      "status_publish": "Tampil",
+      "position": 3,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.451Z"
+    },
+    {
+      "id": 4,
+      "parent_menu": "PROFIL",
+      "menu_label": "Struktur Organisasi",
+      "slug": "struktur-organisasi",
+      "judul": "Struktur Organisasi",
+      "isi": "Struktur organisasi dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 4,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.451Z"
+    },
+    {
+      "id": 5,
+      "parent_menu": "PROFIL",
+      "menu_label": "Maklumat Pelayanan",
+      "slug": "maklumat-pelayanan",
+      "judul": "Maklumat Pelayanan",
+      "isi": "Maklumat pelayanan dapat diedit melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 5,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.451Z"
+    },
+    {
+      "id": 6,
+      "parent_menu": "REGULASI",
+      "menu_label": "UU KIP",
+      "slug": "uu-kip",
+      "judul": "UU KIP",
+      "isi": "Konten regulasi UU KIP dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 1,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.452Z"
+    },
+    {
+      "id": 7,
+      "parent_menu": "REGULASI",
+      "menu_label": "Peraturan Menteri",
+      "slug": "peraturan-menteri",
+      "judul": "Peraturan Menteri",
+      "isi": "Konten peraturan menteri dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 2,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.452Z"
+    },
+    {
+      "id": 8,
+      "parent_menu": "REGULASI",
+      "menu_label": "SOP PPID",
+      "slug": "sop-ppid",
+      "judul": "SOP PPID",
+      "isi": "SOP PPID dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 3,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.452Z"
+    },
+    {
+      "id": 9,
+      "parent_menu": "REGULASI",
+      "menu_label": "SK PPID",
+      "slug": "sk-ppid",
+      "judul": "SK PPID",
+      "isi": "SK PPID dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 4,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.453Z"
+    },
+    {
+      "id": 10,
+      "parent_menu": "INFORMASI PUBLIK",
+      "menu_label": "Informasi Berkala",
+      "slug": "informasi-berkala",
+      "judul": "Informasi Berkala",
+      "isi": "Klik menu ini untuk melihat daftar dokumen informasi berkala pada tabel informasi publik.",
+      "status_publish": "Tampil",
+      "position": 1,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.453Z"
+    },
+    {
+      "id": 11,
+      "parent_menu": "INFORMASI PUBLIK",
+      "menu_label": "Informasi Serta Merta",
+      "slug": "informasi-serta-merta",
+      "judul": "Informasi Serta Merta",
+      "isi": "Klik menu ini untuk melihat daftar dokumen informasi serta merta pada tabel informasi publik.",
+      "status_publish": "Tampil",
+      "position": 2,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.454Z"
+    },
+    {
+      "id": 12,
+      "parent_menu": "INFORMASI PUBLIK",
+      "menu_label": "Informasi Setiap Saat",
+      "slug": "informasi-setiap-saat",
+      "judul": "Informasi Setiap Saat",
+      "isi": "Klik menu ini untuk melihat daftar dokumen informasi setiap saat pada tabel informasi publik.",
+      "status_publish": "Tampil",
+      "position": 3,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.454Z"
+    },
+    {
+      "id": 13,
+      "parent_menu": "INFORMASI PUBLIK",
+      "menu_label": "Informasi Dikecualikan",
+      "slug": "informasi-dikecualikan",
+      "judul": "Informasi Dikecualikan",
+      "isi": "Klik menu ini untuk melihat daftar dokumen informasi dikecualikan pada tabel informasi publik.",
+      "status_publish": "Tampil",
+      "position": 4,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.454Z"
+    },
+    {
+      "id": 14,
+      "parent_menu": "LAYANAN INFORMASI",
+      "menu_label": "Prosedur Permohonan",
+      "slug": "prosedur-permohonan",
+      "judul": "Prosedur Permohonan",
+      "isi": "Prosedur permohonan informasi dapat diedit melalui Panel Admin > Atur Menu Website.",
+      "status_publish": "Tampil",
+      "position": 1,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.454Z"
+    },
+    {
+      "id": 15,
+      "parent_menu": "LAYANAN INFORMASI",
+      "menu_label": "Prosedur Keberatan",
+      "slug": "prosedur-keberatan",
+      "judul": "Prosedur Keberatan",
+      "isi": "Prosedur keberatan dapat diedit melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 2,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.455Z"
+    },
+    {
+      "id": 16,
+      "parent_menu": "LAYANAN INFORMASI",
+      "menu_label": "Biaya Layanan",
+      "slug": "biaya-layanan",
+      "judul": "Biaya Layanan",
+      "isi": "Informasi biaya layanan dapat diedit melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 3,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.455Z"
+    },
+    {
+      "id": 17,
+      "parent_menu": "LAYANAN INFORMASI",
+      "menu_label": "Hak & Tata Cara",
+      "slug": "hak-tata-cara",
+      "judul": "Hak & Tata Cara",
+      "isi": "Hak dan tata cara memperoleh informasi dapat diedit melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 4,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.456Z"
+    },
+    {
+      "id": 18,
+      "parent_menu": "LAPORAN",
+      "menu_label": "Laporan Tahunan",
+      "slug": "laporan-tahunan",
+      "judul": "Laporan Tahunan",
+      "isi": "Laporan tahunan dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 1,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.456Z"
+    },
+    {
+      "id": 19,
+      "parent_menu": "LAPORAN",
+      "menu_label": "Laporan Statistik",
+      "slug": "laporan-statistik",
+      "judul": "Laporan Statistik",
+      "isi": "Laporan statistik dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 2,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.457Z"
+    },
+    {
+      "id": 20,
+      "parent_menu": "LAPORAN",
+      "menu_label": "Laporan Akses",
+      "slug": "laporan-akses",
+      "judul": "Laporan Akses",
+      "isi": "Laporan akses informasi dapat diedit dan dilengkapi berkas melalui Panel Admin.",
+      "status_publish": "Tampil",
+      "position": 3,
+      "is_builtin": 0,
+      "created_at": "2026-06-23T06:00:09.457Z"
     }
   ],
   "menu_page_files": [],
@@ -148,67 +364,5 @@
   "content_posts": [],
   "beranda": [],
   "informasi_publik_files": [],
-  "navbar": [],
-  "MENU_PAGES": [
-    {
-      "id": 1
-    },
-    {
-      "id": 2
-    },
-    {
-      "id": 3
-    },
-    {
-      "id": 4
-    },
-    {
-      "id": 5
-    },
-    {
-      "id": 6
-    },
-    {
-      "id": 7
-    },
-    {
-      "id": 8
-    },
-    {
-      "id": 9
-    },
-    {
-      "id": 10
-    },
-    {
-      "id": 11
-    },
-    {
-      "id": 12
-    },
-    {
-      "id": 13
-    },
-    {
-      "id": 14
-    },
-    {
-      "id": 15
-    },
-    {
-      "id": 16
-    },
-    {
-      "id": 17
-    },
-    {
-      "id": 18
-    },
-    {
-      "id": 19
-    },
-    {
-      "id": 20
-    }
-  ]
+  "navbar": []
 }

@@ -35,8 +35,8 @@ if (!fs.existsSync(uploadDir)) {
 
 app.use("/uploads", express.static(uploadDir));
 
-let useRealDb = (process.env.USE_REAL_DB === "true");
-let db = mysqlMock.createPool(); // Default mock fallback is set immediately for safety
+let useRealDb = process.env.USE_REAL_DB === "true";
+let db = mysqlMock.createPool();
 
 const initDatabase = async () => {
   if (useRealDb) {
@@ -53,7 +53,6 @@ const initDatabase = async () => {
         queueLimit: 0,
         connectTimeout: 5000,
       });
-      // Test the pool to make sure connection parameters are valid
       await realPool.query("SELECT 1");
       db = realPool;
       console.log("✅ Database Mode: Real MySQL Connected Successfully!");
@@ -111,7 +110,6 @@ const upload = multer({
     if (allowedUploadMimeTypes.includes(file.mimetype)) {
       return cb(null, true);
     }
-
     return cb(new Error(`Tipe file tidak diizinkan: ${file.mimetype}`));
   },
 });
@@ -129,7 +127,6 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
 const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
 
 const isBcryptHash = (value = "") => /^\$2[aby]\$\d{2}\$/.test(value);
-
 const hashPassword = (password) => bcrypt.hash(String(password), SALT_ROUNDS);
 
 const verifyPassword = async (plainPassword, savedPassword) => {
@@ -137,8 +134,6 @@ const verifyPassword = async (plainPassword, savedPassword) => {
   if (isBcryptHash(savedPassword)) {
     return bcrypt.compare(String(plainPassword), savedPassword);
   }
-
-  // Kompatibel dengan akun lama yang password-nya masih plaintext.
   return String(plainPassword) === String(savedPassword);
 };
 
@@ -301,7 +296,6 @@ app.post(
       return res.status(401).json({ message: "Email atau password salah" });
     }
 
-    // Upgrade otomatis akun lama: plaintext -> bcrypt setelah login berhasil.
     if (!isBcryptHash(user.password)) {
       const upgradedHash = await hashPassword(password);
       await db.query("UPDATE users SET password = ? WHERE id = ?", [
@@ -341,20 +335,9 @@ app.put(
       `
       INSERT INTO informasi_beranda
       (
-        id,
-        nama_instansi,
-        logo_url,
-        kontak_telepon,
-        kontak_email,
-        alamat,
-        banner_badge,
-        banner_judul,
-        banner_highlight,
-        banner_subjudul,
-        banner_gambar,
-        footer_deskripsi,
-        prosedur_judul,
-        prosedur_isi
+        id, nama_instansi, logo_url, kontak_telepon, kontak_email, alamat,
+        banner_badge, banner_judul, banner_highlight, banner_subjudul, banner_gambar,
+        footer_deskripsi, prosedur_judul, prosedur_isi
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
@@ -435,42 +418,48 @@ app.get(
   asyncHandler(async (req, res) => {
     const { q } = req.query;
     if (!q || !q.trim()) {
-      return res.status(400).json({ message: "Parameter pencarian tidak boleh kosong" });
+      return res
+        .status(400)
+        .json({ message: "Parameter pencarian tidak boleh kosong" });
     }
 
     const searchQuery = q.trim();
 
-    // Cari user ID yang cocok dengan email atau NIK pencarian
     const [users] = await db.query(
       "SELECT id, nama_lengkap, email, nik FROM users WHERE email = ? OR nik = ?",
-      [searchQuery, searchQuery]
+      [searchQuery, searchQuery],
     );
 
-    const userIds = users.map(u => u.id);
+    const userIds = users.map((u) => u.id);
 
-    // Ambil seluruh permohonan
     const [allPermohonan] = await db.query(
-      "SELECT * FROM permohonan ORDER BY tanggal_pengajuan DESC"
+      "SELECT * FROM permohonan ORDER BY tanggal_pengajuan DESC",
     );
 
-    // Filter permohonan yang berhubungan
-    const matched = allPermohonan.filter(p => {
-      if (userIds.includes(Number(p.user_id))) return true;
-      if (p.subjek && p.subjek.toLowerCase().includes(searchQuery.toLowerCase())) return true;
-      if (String(p.id) === searchQuery) return true;
-      return false;
-    }).map(p => {
-      const user = users.find(u => Number(u.id) === Number(p.user_id)) || {};
-      return {
-        ...p,
-        nama_lengkap: user.nama_lengkap || "Pengguna",
-        nik: user.nik || "",
-        email: user.email || ""
-      };
-    });
+    const matched = allPermohonan
+      .filter((p) => {
+        if (userIds.includes(Number(p.user_id))) return true;
+        if (
+          p.subjek &&
+          p.subjek.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+          return true;
+        if (String(p.id) === searchQuery) return true;
+        return false;
+      })
+      .map((p) => {
+        const user =
+          users.find((u) => Number(u.id) === Number(p.user_id)) || {};
+        return {
+          ...p,
+          nama_lengkap: user.nama_lengkap || "Pengguna",
+          nik: user.nik || "",
+          email: user.email || "",
+        };
+      });
 
     res.json(matched);
-  })
+  }),
 );
 
 app.post(
@@ -525,10 +514,10 @@ app.post(
     res.status(201).json({ message: "Informasi publik berhasil ditambahkan" });
   }),
 );
+
 app.put("/api/content-blocks/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     const { title, content, url, file_path, sort_order } = req.body;
 
     await db.query(
@@ -544,11 +533,11 @@ app.put("/api/content-blocks/:id", async (req, res) => {
     res.status(500).json({ message: "Error updating block" });
   }
 });
+
 app.delete("/api/content-blocks/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // cek apakah block ada
     const [block] = await db.query(
       "SELECT * FROM content_blocks WHERE id = ?",
       [id],
@@ -558,7 +547,6 @@ app.delete("/api/content-blocks/:id", async (req, res) => {
       return res.status(404).json({ message: "Block tidak ditemukan" });
     }
 
-    // delete block
     await db.query(
       "UPDATE content_blocks SET deleted_at = NOW() WHERE id = ?",
       [id],
@@ -575,6 +563,7 @@ app.delete("/api/content-blocks/:id", async (req, res) => {
     });
   }
 });
+
 app.put(
   "/api/admin/informasi-publik/:id",
   requireAdmin,
@@ -816,6 +805,7 @@ app.get("/api/submenu/:slug", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 app.post("/api/posts", async (req, res) => {
   try {
     const { submenu_id, title, content, image, file, link, status } = req.body;
@@ -843,49 +833,88 @@ app.post("/api/posts", async (req, res) => {
     res.status(500).json({ message: "Error create post" });
   }
 });
+
+/* =========================================================================
+   FIXED/UPDATED ROUTE: GET /api/posts/:slug dengan Fallback Menu Pages 
+========================================================================= */
 app.get("/api/posts/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
 
+    // 1. Coba cari di submenu_pages terlebih dahulu
     const [submenu] = await db.query(
       "SELECT * FROM submenu_pages WHERE slug = ?",
       [slug],
     );
 
-    if (!submenu.length) {
-      return res.status(404).json({ message: "Submenu not found" });
+    if (submenu.length > 0) {
+      const menu = submenu[0];
+      const [posts] = await db.query(
+        `SELECT * FROM content_posts 
+         WHERE submenu_id = ? AND status = 'publish'
+         ORDER BY created_at DESC`,
+        [menu.id],
+      );
+
+      return res.json({
+        submenu: menu,
+        posts,
+      });
     }
 
-    const menu = submenu[0];
-
-    const [posts] = await db.query(
-      `SELECT * FROM content_posts 
-       WHERE submenu_id = ? AND status = 'publish'
-       ORDER BY created_at DESC`,
-      [menu.id],
+    // 2. Fallback: Jika tidak ada di submenu_pages, cari di menu_pages (seperti profil-ppid, visi-misi)
+    const [menuPages] = await db.query(
+      "SELECT * FROM menu_pages WHERE slug = ? LIMIT 1",
+      [slug],
     );
 
-    res.json({
-      submenu: menu,
-      posts,
-    });
+    if (menuPages.length > 0) {
+      const page = menuPages[0];
+
+      // Ambil berkas jika ada
+      const [files] = await db.query(
+        "SELECT * FROM menu_page_files WHERE page_id = ? ORDER BY id ASC",
+        [page.id],
+      );
+
+      // Ubah format data menu_page agar menyerupai objek post yang dimengerti frontend
+      return res.json({
+        submenu: {
+          id: page.id,
+          title: page.judul,
+          slug: page.slug,
+          content: page.isi,
+        },
+        posts: [
+          {
+            id: page.id,
+            title: page.judul,
+            content: page.isi,
+            created_at: page.created_at,
+            berkas_list: files,
+          },
+        ],
+      });
+    }
+
+    return res.status(404).json({ message: "Halaman/Submenu tidak ditemukan" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error fetch posts" });
+    res.status(500).json({ message: "Error fetch posts atau menu fallback" });
   }
 });
+
 app.delete("/api/posts/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     await db.query("DELETE FROM content_posts WHERE id = ?", [id]);
-
     res.json({ message: "Post deleted" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error delete post" });
   }
 });
+
 app.post("/api/content-blocks", async (req, res) => {
   try {
     const { submenu_id, type, title, content, url, file_path, sort_order } =
@@ -912,6 +941,7 @@ app.post("/api/content-blocks", async (req, res) => {
     res.status(500).json({ message: "Error creating block" });
   }
 });
+
 /* =========================
    NAVBAR CMS SEDERHANA
 ========================= */
@@ -1027,7 +1057,6 @@ const defaultMenuPages = [
     isi: "Maklumat pelayanan dapat diedit melalui Panel Admin.",
     position: 5,
   },
-
   {
     parent_menu: "REGULASI",
     menu_label: "UU KIP",
@@ -1060,7 +1089,6 @@ const defaultMenuPages = [
     isi: "SK PPID dapat diedit dan dilengkapi berkas melalui Panel Admin.",
     position: 4,
   },
-
   {
     parent_menu: "INFORMASI PUBLIK",
     menu_label: "Informasi Berkala",
@@ -1093,7 +1121,6 @@ const defaultMenuPages = [
     isi: "Klik menu ini untuk melihat daftar dokumen informasi dikecualikan pada tabel informasi publik.",
     position: 4,
   },
-
   {
     parent_menu: "LAYANAN INFORMASI",
     menu_label: "Prosedur Permohonan",
@@ -1126,7 +1153,6 @@ const defaultMenuPages = [
     isi: "Hak dan tata cara memperoleh informasi dapat diedit melalui Panel Admin.",
     position: 4,
   },
-
   {
     parent_menu: "LAPORAN",
     menu_label: "Laporan Tahunan",
@@ -1165,10 +1191,17 @@ const ensureAllTables = async () => {
   if (!useRealDb) return;
   try {
     const [tables] = await db.query("SHOW TABLES");
-    const tableNames = tables.map((row) => String(Object.values(row)[0]).toLowerCase());
+    const tableNames = tables.map((row) =>
+      String(Object.values(row)[0]).toLowerCase(),
+    );
 
-    if (!tableNames.includes("users") || !tableNames.includes("informasi_beranda")) {
-      console.log("Database empty or missing required tables. Bootstrapping tables from db_ppid_man2.sql...");
+    if (
+      !tableNames.includes("users") ||
+      !tableNames.includes("informasi_beranda")
+    ) {
+      console.log(
+        "Database empty or missing required tables. Bootstrapping tables from db_ppid_man2.sql...",
+      );
       const sqlPath = path.resolve(__dirname, "../db_ppid_man2.sql");
       if (fs.existsSync(sqlPath)) {
         const sqlContent = fs.readFileSync(sqlPath, "utf8");
@@ -1198,19 +1231,27 @@ const ensureAllTables = async () => {
               "Error executing SQL statement during auto-import:",
               queryStr.substring(0, 80) + "...",
               "\nError:",
-              queryErr.message
+              queryErr.message,
             );
           }
         }
-        console.log("✅ Database bootstrapped successfully from db_ppid_man2.sql!");
+        console.log(
+          "✅ Database bootstrapped successfully from db_ppid_man2.sql!",
+        );
       } else {
-        console.warn("⚠️ Warning: db_ppid_man2.sql was not found at expected path:", sqlPath);
+        console.warn(
+          "⚠️ Warning: db_ppid_man2.sql was not found at expected path:",
+          sqlPath,
+        );
       }
     } else {
       console.log("Database checked: Required tables exist.");
     }
   } catch (error) {
-    console.error("❌ Exception during db_ppid_man2.sql auto-bootstrap check:", error.message);
+    console.error(
+      "❌ Exception during db_ppid_man2.sql auto-bootstrap check:",
+      error.message,
+    );
   }
 };
 
@@ -1246,17 +1287,23 @@ const ensureMenuCmsTables = async () => {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
 
-  // 1. Migrate old LAYANAN parent_menu to LAYANAN INFORMASI
   try {
-    await db.query(`UPDATE menu_pages SET parent_menu = 'LAYANAN INFORMASI' WHERE parent_menu = 'LAYANAN'`);
+    await db.query(
+      `UPDATE menu_pages SET parent_menu = 'LAYANAN INFORMASI' WHERE parent_menu = 'LAYANAN'`,
+    );
   } catch (err) {
-    console.error("Migration: failed to migrate parent_menu LAYANAN:", err.message);
+    console.error(
+      "Migration: failed to migrate parent_menu LAYANAN:",
+      err.message,
+    );
   }
 
-  // 2. Seed any missing default menu pages by matching their unique slug
   for (const item of defaultMenuPages) {
     try {
-      const [existing] = await db.query("SELECT id FROM menu_pages WHERE slug = ? LIMIT 1", [item.slug]);
+      const [existing] = await db.query(
+        "SELECT id FROM menu_pages WHERE slug = ? LIMIT 1",
+        [item.slug],
+      );
       if (existing.length === 0) {
         await db.query(
           `INSERT INTO menu_pages
@@ -1269,13 +1316,16 @@ const ensureMenuCmsTables = async () => {
             item.slug,
             item.judul,
             item.isi || `Konten ${item.menu_label} belum diisi oleh admin.`,
-            'Tampil',
+            "Tampil",
             item.position,
           ],
         );
       }
     } catch (err) {
-      console.error(`Migration: failed to seed default page ${item.slug}:`, err.message);
+      console.error(
+        `Migration: failed to seed default page ${item.slug}:`,
+        err.message,
+      );
     }
   }
 };
@@ -1376,16 +1426,7 @@ app.post(
     }
 
     const [result] = await db.query(
-      `const slugify = (text) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
-};
-      INSERT INTO menu_pages
+      `INSERT INTO menu_pages
       (parent_menu, menu_label, slug, judul, isi, status_publish, position, is_builtin)
       VALUES (?, ?, ?, ?, ?, ?, ?, 0)
     `,
@@ -1405,27 +1446,10 @@ app.post(
     if (req.files?.length) {
       for (const file of req.files) {
         await db.query(
-          `const slugify = (text) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
-};
-          INSERT INTO menu_pages
-    (parent_menu, menu_label, slug, judul, isi, status_publish, position, is_builtin)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-          [
-            String(parent_menu).toUpperCase(),
-            menu_label,
-            slug,
-            judul,
-            isi || "", // <-- pastikan isi dikirim dari pop-up
-            status_publish || "Tampil",
-            Number(position || 1),
-          ],
+          `INSERT INTO menu_page_files
+          (page_id, nama_file, nama_asli, mime_type, ukuran)
+          VALUES (?, ?, ?, ?, ?)`,
+          [pageId, file.filename, file.originalname, file.mimetype, file.size],
         );
       }
     }
@@ -1467,9 +1491,9 @@ app.put(
       [
         String(parent_menu).toUpperCase(),
         menu_label,
-        slug,
+        finalSlug,
         judul,
-        isi || "", // <-- simpan teks pop-up ke kolom isi
+        isi || "",
         status_publish || "Tampil",
         Number(position || 1),
         id,
@@ -1577,10 +1601,6 @@ app.put(
 );
 
 /* =========================
-   FRONTEND PRODUCTION
-========================= */
-
-/* =========================
    FRONTEND VITE MIDDLEWARE & STATIC SERVING
 ========================= */
 
@@ -1605,9 +1625,10 @@ const PORT = 3000;
 
 async function startServer() {
   const distPath = path.resolve(__dirname, "../dist");
-  const hasVite = fs.existsSync(path.resolve(__dirname, "../node_modules/vite"));
+  const hasVite = fs.existsSync(
+    path.resolve(__dirname, "../node_modules/vite"),
+  );
 
-  // Serve with Vite in development if available, otherwise serve prebuilt static files
   if (process.env.NODE_ENV !== "production" && hasVite) {
     try {
       const { createServer: createViteServer } = require("vite");
@@ -1617,7 +1638,10 @@ async function startServer() {
       });
       app.use(vite.middlewares);
     } catch (e) {
-      console.warn("⚠️ Gagal memuat Vite, fallback ke file statis dist:", e.message);
+      console.warn(
+        "⚠️ Gagal memuat Vite, fallback ke file statis dist:",
+        e.message,
+      );
       app.use(express.static(distPath));
       app.get("*", (req, res) => {
         res.sendFile(path.join(distPath, "index.html"));
@@ -1634,7 +1658,9 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", async () => {
     try {
-      console.log(`✅ Database terinisialisasi (${useRealDb ? "Real MySQL" : "Mock JSON"})`);
+      console.log(
+        `✅ Database terinisialisasi (${useRealDb ? "Real MySQL" : "Mock JSON"})`,
+      );
       await ensureAllTables();
       await ensureMenuCmsTables();
       console.log("✅ Tabel CMS menu siap");
