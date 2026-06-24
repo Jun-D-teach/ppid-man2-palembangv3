@@ -1,0 +1,214 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "nama_lengkap": "Junaidi -",
+      "nik": "1671076001900011",
+      "no_hp": "085656309848",
+      "email": "dataumumjun@gmail.com",
+      "password": "12345",
+      "role": "user",
+      "created_at": "2026-06-23T05:56:18.283Z"
+    },
+    {
+      "id": 4,
+      "nama_lengkap": "admin",
+      "nik": "111111111111111",
+      "no_hp": "085366488829",
+      "email": "infolayananman2plg@gmail.com",
+      "password": "$2a$10$/xyilQEIZDyGbgK8VitizO5YPgzrZya7DwWLYH.9Zyg4HMc5hRoUW",
+      "role": "admin",
+      "created_at": "2026-06-23T05:56:18.283Z"
+    }
+  ],
+  "informasi_beranda": [
+    {
+      "id": 1,
+      "nama_instansi": "MAN 2 Palembang",
+      "logo_url": "",
+      "kontak_telepon": "085366488829",
+      "kontak_email": "infolayananman2plg@gmail.com",
+      "alamat": "Jl. Inspektur Marzuki No.2, Siring Agung, Kec. Ilir Bar. I, Kota Palembang, Sumatera Selatan",
+      "banner_badge": "PPID MAN 2 Palembang",
+      "banner_judul": "Pejabat Pengelola Informasi dan Dokumentasi",
+      "banner_highlight": "PPID MAN 2 Palembang",
+      "banner_subjudul": "Layanan informasi publik yang transparan, cepat, dan mudah diakses di lingkungan Madrasah Aliyah Negeri 2 Palembang.",
+      "banner_gambar": "",
+      "footer_deskripsi": "Sistem Pejabat Pengelola Informasi dan Dokumentasi (PPID) Madrasah Aliyah Negeri 2 Palembang.",
+      "prosedur_judul": "Prosedur Permohonan Informasi",
+      "prosedur_isi": "1. Pengguna melakukan registrasi akun.\n2. Mengajukan permohonan baru pada form yang tersedia.\n3. Admin PPID memproses permohonan.\n4. Dokumen atau berkas dikirimkan melalui sistem atau email."
+    }
+  ],
+  "informasi_publik": [
+    {
+      "id": 1,
+      "kategori": "Kategori Berkala",
+      "judul": "Laporan Kinerja Instansi Pemerintah MAN 2 Palembang",
+      "deskripsi": "Dokumen Laporan Akuntabilitas Kinerja Instansi Pemerintah (LAKIP) MAN 2 Palembang tahun 2025.",
+      "tahun": "2025",
+      "status_publish": "Tampil",
+      "created_at": "2026-06-23T05:56:18.283Z"
+    }
+  ],
+  "informasi_publik_berkas": [
+    {
+      "id": 1,
+      "informasi_id": 1,
+      "nama_file": "lakip-man2-2025.pdf",
+      "nama_asli": "LAKIP_MAN2_PALEMBANG_2025.pdf",
+      "mime_type": "application/pdf",
+      "ukuran": 1542001
+    }
+  ],
+  "permohonan": [],
+  "navbar_items": [
+    {
+      "id": 1,
+      "name": "Home",
+      "href": "/",
+      "submenu": "[]",
+      "position": 1
+    },
+    {
+      "id": 2,
+      "name": "Profil",
+      "href": "#",
+      "submenu": "[{\"name\":\"Profil PPID\",\"href\":\"/page/profil-ppid\"},{\"name\":\"Visi & Misi\",\"href\":\"/page/visi-misi\"},{\"name\":\"Tugas & Fungsi\",\"href\":\"/page/tugas-fungsi\"},{\"name\":\"Struktur Organisasi\",\"href\":\"/page/struktur-organisasi\"},{\"name\":\"Maklumat Pelayanan\",\"href\":\"/page/maklumat-pelayanan\"}]",
+      "position": 2
+    },
+    {
+      "id": 3,
+      "name": "Regulasi",
+      "href": "#",
+      "submenu": "[{\"name\":\"UU KIP\",\"href\":\"/page/uu-kip\"},{\"name\":\"Peraturan Menteri\",\"href\":\"/page/peraturan-menteri\"},{\"name\":\"SOP PPID\",\"href\":\"/page/sop-ppid\"},{\"name\":\"SK PPID\",\"href\":\"/page/sk-ppid\"}]",
+      "position": 3
+    },
+    {
+      "id": 4,
+      "name": "Informasi Publik",
+      "href": "#",
+      "submenu": "[{\"name\":\"Informasi Berkala\",\"href\":\"/page/informasi-berkala\"},{\"name\":\"Informasi Serta Merta\",\"href\":\"/page/informasi-serta-merta\"},{\"name\":\"Informasi Setiap Saat\",\"href\":\"/page/informasi-setiap-saat\"},{\"name\":\"Informasi Dikecualikan\",\"href\":\"/page/informasi-dikecualikan\"}]",
+      "position": 4
+    },
+    {
+      "id": 5,
+      "name": "Layanan",
+      "href": "#",
+      "submenu": "[{\"name\":\"Prosedur Permohonan\",\"href\":\"/page/prosedur-permohonan\"},{\"name\":\"Prosedur Keberatan\",\"href\":\"/page/prosedur-keberatan\"},{\"name\":\"Biaya Layanan\",\"href\":\"/page/biaya-layanan\"},{\"name\":\"Hak & Tata Cara\",\"href\":\"/page/hak-tata-cara\"}]",
+      "position": 5
+    },
+    {
+      "id": 6,
+      "name": "Laporan",
+      "href": "#",
+      "submenu": "[{\"name\":\"Laporan Tahunan\",\"href\":\"/page/laporan-tahunan\"},{\"name\":\"Laporan Statistik\",\"href\":\"/page/laporan-statistik\"},{\"name\":\"Laporan Akses\",\"href\":\"/page/laporan-akses\"}]",
+      "position": 6
+    }
+  ],
+  "menu_pages": [
+    {
+      "id": 1,
+      "parent_menu": "PROFIL",
+      "menu_label": "Profil PPID",
+      "slug": "profil-ppid",
+      "judul": "Profil PPID",
+      "isi": "Sistem Informasi Pejabat Pengelola Informasi dan Dokumentasi (PPID) Madrasah Aliyah Negeri 2 Palembang siap melayani permohonan informasi publik secara transparan.",
+      "status_publish": "Tampil",
+      "position": 1,
+      "is_builtin": 1,
+      "created_at": "2026-06-23T05:56:18.283Z"
+    },
+    {
+      "id": 2,
+      "parent_menu": "PROFIL",
+      "menu_label": "Visi & Misi",
+      "slug": "visi-misi",
+      "judul": "Visi & Misi",
+      "isi": "Visi: Menjadi garda pelayanan informasi madrasah yang unggul, terpercaya, dan transparan.\nMisi: Menyediakan informasi publik secara terbuka, akurat, dan inovatif.",
+      "status_publish": "Tampil",
+      "position": 2,
+      "is_builtin": 1,
+      "created_at": "2026-06-23T05:56:18.283Z"
+    }
+  ],
+  "menu_page_files": [],
+  "submenu_pages": [
+    {
+      "id": 1,
+      "title": "Profil PPID",
+      "slug": "profil-ppid"
+    },
+    {
+      "id": 2,
+      "title": "Visi & Misi",
+      "slug": "visi-misi"
+    }
+  ],
+  "content_blocks": [],
+  "content_posts": [],
+  "beranda": [],
+  "informasi_publik_files": [],
+  "navbar": [],
+  "MENU_PAGES": [
+    {
+      "id": 1
+    },
+    {
+      "id": 2
+    },
+    {
+      "id": 3
+    },
+    {
+      "id": 4
+    },
+    {
+      "id": 5
+    },
+    {
+      "id": 6
+    },
+    {
+      "id": 7
+    },
+    {
+      "id": 8
+    },
+    {
+      "id": 9
+    },
+    {
+      "id": 10
+    },
+    {
+      "id": 11
+    },
+    {
+      "id": 12
+    },
+    {
+      "id": 13
+    },
+    {
+      "id": 14
+    },
+    {
+      "id": 15
+    },
+    {
+      "id": 16
+    },
+    {
+      "id": 17
+    },
+    {
+      "id": 18
+    },
+    {
+      "id": 19
+    },
+    {
+      "id": 20
+    }
+  ]
+}
