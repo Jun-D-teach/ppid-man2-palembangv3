@@ -64,13 +64,47 @@ const getInfoCategoryKey = (pageOrLabel) => {
   const slug = String(pageOrLabel?.slug || "").toLowerCase();
   const label = pageOrLabel?.menu_label || "";
 
-  // Tetap cocok dengan kategori tabel lama walaupun nama submenu diedit admin.
   if (slug.includes("berkala")) return "Informasi Berkala";
   if (slug.includes("serta-merta")) return "Informasi Serta Merta";
   if (slug.includes("setiap-saat")) return "Informasi Setiap Saat";
   if (slug.includes("dikecualikan")) return "Informasi Dikecualikan";
 
   return label;
+};
+
+// Fungsi pembantu cerdas agar teks deskripsi yang mengandung URL otomatis menjadi link aktif
+const renderCleanDescription = (text) => {
+  if (!text) return null;
+
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return (
+    <>
+      {parts.map((part, partIdx) => {
+        if (part.match(urlRegex)) {
+          const urlTitle = part.split('/').pop() || "Buka Tautan";
+          
+          return (
+            <span key={partIdx} className="inline-block mx-1">
+              <a
+                href={part}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-[11px] px-2 py-0.5 rounded border border-emerald-200/80 shadow-2xs transition-colors align-middle break-all"
+              >
+                <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                {decodeURIComponent(urlTitle).substring(0, 30)}{decodeURIComponent(urlTitle).length > 30 ? "..." : ""}
+              </a>
+            </span>
+          );
+        }
+        return <span key={partIdx}>{part}</span>;
+      })}
+    </>
+  );
 };
 
 const Home = () => {
@@ -84,14 +118,12 @@ const Home = () => {
  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // States for Cek Status Layanan
   const [cekStatusOpen, setCekStatusOpen] = useState(false);
   const [cekStatusQuery, setCekStatusQuery] = useState("");
   const [cekStatusLoading, setCekStatusLoading] = useState(false);
   const [cekStatusResults, setCekStatusResults] = useState(null);
   const [cekStatusError, setCekStatusError] = useState("");
 
-  // States for Private Document Restrictions
   const [privateAccessModal, setPrivateAccessModal] = useState(null);
 
   const navigate = useNavigate();
@@ -220,22 +252,19 @@ const Home = () => {
     }
   };
 
- const handleMenuPageClick = (page) => {
-  if (page?.slug) {
-    navigate(`/page/${page.slug}`);
-  }
-  setMobileMenuOpen(false);
-};
+  const handleMenuPageClick = (page) => {
+    if (page?.slug) {
+      navigate(`/page/${page.slug}`);
+    }
+    setMobileMenuOpen(false);
+  };
 
   const handleProsedurButton = () => {
-  const page = menuPages.find(
-    (p) => p.slug === "prosedur-permohonan"
-  );
-
-  if (page?.slug) {
-    navigate(`/page/${page.slug}`);
-  }
-};
+    const page = menuPages.find((p) => p.slug === "prosedur-permohonan");
+    if (page?.slug) {
+      navigate(`/page/${page.slug}`);
+    }
+  };
 
   const filteredDokumen = informasiPublik
     .filter((item) => item.kategori === activeTab)
@@ -325,11 +354,11 @@ const Home = () => {
                     {nav.submenu.map((sub, idx) => (
                       <li key={sub.id || sub.slug || sub.menu_label || idx}>
                         <button
-  onClick={() => handleMenuPageClick(sub)}
-  className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-50 last:border-0 w-full text-left"
->
-  {sub.menu_label}
-</button>
+                          onClick={() => handleMenuPageClick(sub)}
+                          className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-50 last:border-0 w-full text-left"
+                        >
+                          {sub.menu_label}
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -369,12 +398,12 @@ const Home = () => {
                       </p>
                       {nav.submenu?.map((sub, idx) => (
                         <button
-  key={sub.id || sub.slug || sub.menu_label || idx}
-  onClick={() => handleMenuPageClick(sub)}
-  className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-50 last:border-0 w-full text-left"
->
-  {sub.menu_label}
-</button>
+                          key={sub.id || sub.slug || sub.menu_label || idx}
+                          onClick={() => handleMenuPageClick(sub)}
+                          className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-50 last:border-0 w-full text-left"
+                        >
+                          {sub.menu_label}
+                        </button>
                       ))}
                     </>
                   )}
@@ -513,7 +542,6 @@ const Home = () => {
                   key={page.id || page.slug || page.menu_label || index}
                   onClick={() => {
                     setActiveTab(categoryKey);
-                   
                   }}
                   className={`whitespace-nowrap px-4 py-3 md:px-6 md:py-4 rounded-xl text-left text-[10px] md:text-[12px] font-black uppercase tracking-widest transition-all border ${
                     isActive
@@ -540,7 +568,7 @@ const Home = () => {
               <input
                 type="text"
                 value={searchDokumen}
-                onChange={(e) => setSearchDokumen(e.target.value)}
+                onChange={(e) => setSearchDokumen(e.value)}
                 placeholder="Cari dokumen..."
                 className="w-full sm:w-64 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-700/50 transition shadow-sm"
               />
@@ -548,25 +576,20 @@ const Home = () => {
 
             {activeInfoPage && (
               <div className="border-b border-emerald-100 bg-emerald-50/50 p-5 md:p-6">
-                {activeInfoPage && (
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl p-8 shadow-lg border border-emerald-100">
-
-      <div className="mb-6 border-b pb-4">
-        <h3 className="text-xl font-black text-emerald-800 uppercase">
-          {activeInfoPage.judul || activeInfoPage.menu_label}
-        </h3>
-
-        <p className="text-xs text-gray-400 mt-1">
-          PPID MAN 2 Palembang • Informasi Publik
-        </p>
-    
-<div
-  className="text-sm leading-8 text-slate-700 text-justify prose max-w-none"
-  dangerouslySetInnerHTML={{ __html: activeInfoPage.isi }}
-/>
-  </div>
-  </div>
-)}
+                <div className="max-w-4xl mx-auto bg-white rounded-2xl p-8 shadow-lg border border-emerald-100">
+                  <div className="mb-6 border-b pb-4">
+                    <h3 className="text-xl font-black text-emerald-800 uppercase">
+                      {activeInfoPage.judul || activeInfoPage.menu_label}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      PPID MAN 2 Palembang • Informasi Publik
+                    </p>
+                    <div
+                      className="text-sm leading-8 text-slate-700 text-justify prose max-w-none"
+                      dangerouslySetInnerHTML={{ __html: activeInfoPage.isi }}
+                    />
+                  </div>
+                </div>
 
                 {activeInfoPage.berkas_list?.length > 0 && (
                   <div className="mt-5 rounded-2xl border border-emerald-100 bg-white p-4">
@@ -625,8 +648,8 @@ const Home = () => {
                               </span>
                             )}
                             {item.deskripsi && (
-                              <p className="text-[11px] text-slate-400 mt-1 font-medium">
-                                {item.deskripsi}
+                              <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">
+                                {renderCleanDescription(item.deskripsi)}
                               </p>
                             )}
                             {item.tahun && (
@@ -888,12 +911,10 @@ const Home = () => {
             <h4 className="text-white font-black uppercase text-xs tracking-widest mb-6">Navigasi</h4>
             <div className="grid grid-cols-2 gap-2 text-[10px] font-bold uppercase tracking-widest">
               <Link to="/login" className="hover:text-white transition">Login User</Link>
-              
             </div>
           </div>
         </div>
       </footer>
-
     </div>
   );
 };
