@@ -1621,7 +1621,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   const distPath = path.resolve(__dirname, "../dist");
