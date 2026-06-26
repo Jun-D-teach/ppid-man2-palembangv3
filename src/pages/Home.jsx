@@ -91,7 +91,7 @@ const renderCleanDescription = (text) => {
                 href={part}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-[11px] px-2 py-0.5 rounded border border-emerald-200/80 shadow-2xs transition-colors align-middle break-all"
+                className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-[11px] px-2 py-0.5 rounded border border-emerald-200/80 shadow-2xs transition-colors align-middle break-all accessibility-target-link"
               >
                 <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -104,6 +104,151 @@ const renderCleanDescription = (text) => {
         return <span key={partIdx}>{part}</span>;
       })}
     </>
+  );
+};
+
+// --- KOMPONEN TOMBOL DISABILITAS (ACCESSIBILITY WIDGET) MELAYANG (FIXED PROPS) ---
+const AccessibilityWidget = ({ informasiPublik, activeTab }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [contrast, setContrast] = useState(false);
+  const [textScale, setTextScale] = useState(100); 
+  const [dyslexiaFont, setDyslexiaFont] = useState(false);
+  const [highlightLinks, setHighlightLinks] = useState(false);
+
+  useEffect(() => {
+    const el = document.documentElement;
+    if (contrast) {
+      el.style.setProperty("filter", "contrast(145%) saturate(40%)", "important");
+      el.style.setProperty("background-color", "#000000", "important");
+    } else {
+      el.style.removeProperty("filter");
+      el.style.removeProperty("background-color");
+    }
+  }, [contrast]);
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = textScale === 100 ? "" : `${textScale}%`;
+  }, [textScale]);
+
+  useEffect(() => {
+    const tags = document.querySelectorAll("p, span, a, h1, h2, h3, h4, th, td, button, input");
+    tags.forEach((tag) => {
+      if (dyslexiaFont) {
+        tag.style.setProperty("font-family", "'Comic Sans MS', 'Arial', sans-serif", "important");
+      } else {
+        tag.style.removeProperty("font-family");
+      }
+    });
+  }, [dyslexiaFont, textScale, contrast]);
+
+  useEffect(() => {
+    const links = document.querySelectorAll("a, .accessibility-target-link");
+    links.forEach((link) => {
+      if (highlightLinks) {
+        link.style.setProperty("outline", "3px solid #f43f5e", "important");
+        link.style.setProperty("background-color", "#fef08a", "important");
+        link.style.setProperty("color", "#000000", "important");
+        link.style.setProperty("text-decoration", "underline", "important");
+      } else {
+        link.style.removeProperty("outline");
+        link.style.removeProperty("background-color");
+        link.style.removeProperty("color");
+        link.style.removeProperty("text-decoration");
+      }
+    });
+  }, [highlightLinks, informasiPublik, activeTab]);
+
+  const resetAll = () => {
+    setContrast(false);
+    setTextScale(100);
+    setDyslexiaFont(false);
+    setHighlightLinks(false);
+  };
+
+  return (
+    <div className="fixed bottom-6 left-6 z-[9999] font-sans text-xs">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 border-2 border-white cursor-pointer"
+        title="Menu Aksesibilitas Disabilitas"
+      >
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm2.3 9.4c-.1-.7-.7-1.3-1.4-1.4C12.2 9.9 11 10.7 11 12v4.5c0 .8.7 1.5 1.5 1.5h2c.8 0 1.5-.7 1.5-1.5V13c0-.6-.4-1.2-.9-1.4-.2-.1-.5-.2-.8-.2zm-4.1 6.5C8.8 17.5 8 16 8 14.3c0-2.6 1.7-4.8 4-5.6V6.6C8.6 7.5 6 10.6 6 14.3c0 3 1.7 5.7 4.3 6.9l.9-1.8c-.4-.1-.7-.3-1-.5z"/>
+  </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute bottom-16 left-0 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 space-y-3 text-slate-800 animate-fade-in">
+          <div className="flex justify-between items-center border-b pb-2">
+            <h3 className="font-black text-slate-900 uppercase tracking-wider text-[10px]">Menu Aksesibilitas</h3>
+            <button type="button" onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕</button>
+          </div>
+
+          <div className="space-y-1">
+            <p className="font-bold text-slate-500 text-[10px]">Ukuran Teks:</p>
+            <div className="grid grid-cols-3 gap-1 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setTextScale(100)}
+                className={`py-1 rounded font-bold border cursor-pointer ${textScale === 100 ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
+              >
+                Normal
+              </button>
+              <button
+                type="button"
+                onClick={() => setTextScale(115)}
+                className={`py-1 rounded font-bold border cursor-pointer ${textScale === 115 ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
+              >
+                Besar
+              </button>
+              <button
+                type="button"
+                onClick={() => setTextScale(130)}
+                className={`py-1 rounded font-bold border cursor-pointer ${textScale === 130 ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
+              >
+                Besar+
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setContrast(!contrast)}
+            className={`w-full flex justify-between items-center p-2 rounded-xl border text-left font-bold cursor-pointer ${contrast ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
+          >
+            <span>🌓 Kontras Tinggi</span>
+            <span className="text-[10px]">{contrast ? "AKTIF" : "NONAKTIF"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDyslexiaFont(!dyslexiaFont)}
+            className={`w-full flex justify-between items-center p-2 rounded-xl border text-left font-bold cursor-pointer ${dyslexiaFont ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
+          >
+            <span>🔤 Font Disleksia</span>
+            <span className="text-[10px]">{dyslexiaFont ? "AKTIF" : "NONAKTIF"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setHighlightLinks(!highlightLinks)}
+            className={`w-full flex justify-between items-center p-2 rounded-xl border text-left font-bold cursor-pointer ${highlightLinks ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
+          >
+            <span>🔗 Sorot Semua Link</span>
+            <span className="text-[10px]">{highlightLinks ? "AKTIF" : "NONAKTIF"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={resetAll}
+            className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-black rounded-xl uppercase tracking-wider text-[10px] text-center border border-rose-200 cursor-pointer"
+          >
+            Reset Pengaturan
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -568,7 +713,7 @@ const Home = () => {
               <input
                 type="text"
                 value={searchDokumen}
-                onChange={(e) => setSearchDokumen(e.value)}
+                onChange={(e) => setSearchDokumen(e.target.value)}
                 placeholder="Cari dokumen..."
                 className="w-full sm:w-64 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-700/50 transition shadow-sm"
               />
@@ -721,6 +866,7 @@ const Home = () => {
 
               <div className="mt-8 flex flex-col gap-2 w-full">
                 <button
+                  type="button"
                   onClick={() => {
                     setPrivateAccessModal(null);
                     navigate("/login");
@@ -730,6 +876,7 @@ const Home = () => {
                   Masuk Sekarang
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setPrivateAccessModal(null);
                     navigate("/register");
@@ -739,6 +886,7 @@ const Home = () => {
                   Daftar Akun Baru
                 </button>
                 <button
+                  type="button"
                   onClick={() => setPrivateAccessModal(null)}
                   className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition"
                 >
@@ -755,6 +903,7 @@ const Home = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
           <div className="relative w-full max-w-2xl rounded-[2.5rem] border border-slate-100 bg-white p-6 md:p-10 shadow-2xl">
             <button
+              type="button"
               onClick={() => setCekStatusOpen(false)}
               className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 transition font-bold"
             >
@@ -867,6 +1016,7 @@ const Home = () => {
             
             <div className="mt-6 text-center">
               <button
+                type="button"
                 onClick={() => setCekStatusOpen(false)}
                 className="text-xs font-black uppercase tracking-wider text-slate-400 hover:text-slate-600 transition"
               >
@@ -915,6 +1065,9 @@ const Home = () => {
           </div>
         </div>
       </footer>
+
+      {/* --- WIDGET TOMBOL AKSESIBILITAS DENGAN DATA PROPS YANG SUDAH DIPERBAIKI --- */}
+      <AccessibilityWidget informasiPublik={informasiPublik} activeTab={activeTab} />
     </div>
   );
 };
