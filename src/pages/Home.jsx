@@ -76,19 +76,24 @@ const getInfoCategoryKey = (pageOrLabel) => {
 const renderCleanDescription = (text) => {
   if (!text) return null;
 
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // Pola regex untuk mendeteksi link URL (http:// atau https://),
+  // dimodifikasi agar mengabaikan tanda kurung tutup ')' di akhir link.
+  const urlRegex = /((?:https?|http):\/\/[^\s\)]+)/g;
   const parts = text.split(urlRegex);
 
   return (
     <>
       {parts.map((part, partIdx) => {
-        if (part.match(urlRegex)) {
-          const urlTitle = part.split('/').pop() || "Buka Tautan";
+        // Cek apakah bagian ini adalah URL
+        if (part.match(/https?:\/\/[^\s]+/)) {
+          // Bersihkan karakter aneh di ujung URL jika ada
+          const cleanUrl = part.replace(/[\)\]\.,\s]+$/, '');
+          const urlTitle = cleanUrl.split('/').pop() || "Buka Tautan";
           
           return (
             <span key={partIdx} className="inline-block mx-1">
               <a
-                href={part}
+                href={cleanUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-[11px] px-2 py-0.5 rounded border border-emerald-200/80 shadow-2xs transition-colors align-middle break-all accessibility-target-link"
@@ -101,154 +106,10 @@ const renderCleanDescription = (text) => {
             </span>
           );
         }
+        // Bagian teks biasa tampil menyambung secara normal
         return <span key={partIdx}>{part}</span>;
       })}
     </>
-  );
-};
-
-// --- KOMPONEN TOMBOL DISABILITAS (ACCESSIBILITY WIDGET) MELAYANG (FIXED PROPS) ---
-const AccessibilityWidget = ({ informasiPublik, activeTab }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [contrast, setContrast] = useState(false);
-  const [textScale, setTextScale] = useState(100); 
-  const [dyslexiaFont, setDyslexiaFont] = useState(false);
-  const [highlightLinks, setHighlightLinks] = useState(false);
-
-  useEffect(() => {
-    const el = document.documentElement;
-    if (contrast) {
-      el.style.setProperty("filter", "contrast(145%) saturate(40%)", "important");
-      el.style.setProperty("background-color", "#000000", "important");
-    } else {
-      el.style.removeProperty("filter");
-      el.style.removeProperty("background-color");
-    }
-  }, [contrast]);
-
-  useEffect(() => {
-    document.documentElement.style.fontSize = textScale === 100 ? "" : `${textScale}%`;
-  }, [textScale]);
-
-  useEffect(() => {
-    const tags = document.querySelectorAll("p, span, a, h1, h2, h3, h4, th, td, button, input");
-    tags.forEach((tag) => {
-      if (dyslexiaFont) {
-        tag.style.setProperty("font-family", "'Comic Sans MS', 'Arial', sans-serif", "important");
-      } else {
-        tag.style.removeProperty("font-family");
-      }
-    });
-  }, [dyslexiaFont, textScale, contrast]);
-
-  useEffect(() => {
-    const links = document.querySelectorAll("a, .accessibility-target-link");
-    links.forEach((link) => {
-      if (highlightLinks) {
-        link.style.setProperty("outline", "3px solid #f43f5e", "important");
-        link.style.setProperty("background-color", "#fef08a", "important");
-        link.style.setProperty("color", "#000000", "important");
-        link.style.setProperty("text-decoration", "underline", "important");
-      } else {
-        link.style.removeProperty("outline");
-        link.style.removeProperty("background-color");
-        link.style.removeProperty("color");
-        link.style.removeProperty("text-decoration");
-      }
-    });
-  }, [highlightLinks, informasiPublik, activeTab]);
-
-  const resetAll = () => {
-    setContrast(false);
-    setTextScale(100);
-    setDyslexiaFont(false);
-    setHighlightLinks(false);
-  };
-
-  return (
-    <div className="fixed bottom-6 left-6 z-[9999] font-sans text-xs">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 border-2 border-white cursor-pointer"
-        title="Menu Aksesibilitas Disabilitas"
-      >
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm2.3 9.4c-.1-.7-.7-1.3-1.4-1.4C12.2 9.9 11 10.7 11 12v4.5c0 .8.7 1.5 1.5 1.5h2c.8 0 1.5-.7 1.5-1.5V13c0-.6-.4-1.2-.9-1.4-.2-.1-.5-.2-.8-.2zm-4.1 6.5C8.8 17.5 8 16 8 14.3c0-2.6 1.7-4.8 4-5.6V6.6C8.6 7.5 6 10.6 6 14.3c0 3 1.7 5.7 4.3 6.9l.9-1.8c-.4-.1-.7-.3-1-.5z"/>
-  </svg>
-      </button>
-
-      {isOpen && (
-        <div className="absolute bottom-16 left-0 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 space-y-3 text-slate-800 animate-fade-in">
-          <div className="flex justify-between items-center border-b pb-2">
-            <h3 className="font-black text-slate-900 uppercase tracking-wider text-[10px]">Menu Aksesibilitas</h3>
-            <button type="button" onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕</button>
-          </div>
-
-          <div className="space-y-1">
-            <p className="font-bold text-slate-500 text-[10px]">Ukuran Teks:</p>
-            <div className="grid grid-cols-3 gap-1 text-[11px]">
-              <button
-                type="button"
-                onClick={() => setTextScale(100)}
-                className={`py-1 rounded font-bold border cursor-pointer ${textScale === 100 ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
-              >
-                Normal
-              </button>
-              <button
-                type="button"
-                onClick={() => setTextScale(115)}
-                className={`py-1 rounded font-bold border cursor-pointer ${textScale === 115 ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
-              >
-                Besar
-              </button>
-              <button
-                type="button"
-                onClick={() => setTextScale(130)}
-                className={`py-1 rounded font-bold border cursor-pointer ${textScale === 130 ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
-              >
-                Besar+
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setContrast(!contrast)}
-            className={`w-full flex justify-between items-center p-2 rounded-xl border text-left font-bold cursor-pointer ${contrast ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
-          >
-            <span>🌓 Kontras Tinggi</span>
-            <span className="text-[10px]">{contrast ? "AKTIF" : "NONAKTIF"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setDyslexiaFont(!dyslexiaFont)}
-            className={`w-full flex justify-between items-center p-2 rounded-xl border text-left font-bold cursor-pointer ${dyslexiaFont ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
-          >
-            <span>🔤 Font Disleksia</span>
-            <span className="text-[10px]">{dyslexiaFont ? "AKTIF" : "NONAKTIF"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setHighlightLinks(!highlightLinks)}
-            className={`w-full flex justify-between items-center p-2 rounded-xl border text-left font-bold cursor-pointer ${highlightLinks ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-slate-50 border-slate-200"}`}
-          >
-            <span>🔗 Sorot Semua Link</span>
-            <span className="text-[10px]">{highlightLinks ? "AKTIF" : "NONAKTIF"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={resetAll}
-            className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-black rounded-xl uppercase tracking-wider text-[10px] text-center border border-rose-200 cursor-pointer"
-          >
-            Reset Pengaturan
-          </button>
-        </div>
-      )}
-    </div>
   );
 };
 
@@ -397,10 +258,31 @@ const Home = () => {
     }
   };
 
+  // --- FIX BARU: LOGIKA SCROLL PADA KLIK SUBMENU ---
   const handleMenuPageClick = (page) => {
-    if (page?.slug) {
+    if (!page?.slug) {
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    // CEK KHUSUS: Jika ini submenu dari "INFORMASI PUBLIK"
+    if (isInformasiPublikPage(page)) {
+      // 1. Dapatkan kunci kategori (Informasi Berkala, Serta Merta, dll.)
+      const categoryKey = getInfoCategoryKey(page);
+      
+      // 2. Ganti tab aktif di bawah secara dinamis
+      setActiveTab(categoryKey);
+
+      // 3. Scroll halus ke bagian tabel informasi publik
+      const tableSection = document.getElementById("daftar-informasi");
+      if (tableSection) {
+        tableSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else {
+      // Perilaku normal untuk menu lain (Profil, Regulasi, dll.): Pindah halaman
       navigate(`/page/${page.slug}`);
     }
+
     setMobileMenuOpen(false);
   };
 
@@ -454,11 +336,12 @@ const Home = () => {
         </div>
       </div>
 
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-md border-b-2 border-emerald-800">
+      <nav className="sticky top-0 z-50 text-center rounded-lg bg-white/95 backdrop-blur shadow-md border-b-2 border-emerald-800">
         {user && user.role === "admin" && (
           <Link to="/admin-ppid-man2" className="text-yellow-500 font-bold ml-4">
             [ PANEL ADMIN ]
           </Link>
+          
         )}
 
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
@@ -668,6 +551,7 @@ const Home = () => {
         </div>
       </section>
 
+      {/* --- BAGIAN DAFTAR INFORMASI (DENGAN ID UNTUK SCROLL) --- */}
       <section id="daftar-informasi" className="mx-auto max-w-7xl px-4 md:px-6 py-20">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter">
@@ -729,10 +613,9 @@ const Home = () => {
                     <p className="text-xs text-gray-400 mt-1">
                       PPID MAN 2 Palembang • Informasi Publik
                     </p>
-                    <div
-                      className="text-sm leading-8 text-slate-700 text-justify prose max-w-none"
-                      dangerouslySetInnerHTML={{ __html: activeInfoPage.isi }}
-                    />
+                    <div className="text-sm leading-8 text-slate-700 text-justify prose max-w-none">
+  {renderCleanDescription(activeInfoPage.isi)}
+</div>
                   </div>
                 </div>
 
@@ -767,15 +650,14 @@ const Home = () => {
                 <thead className="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">Nama Dokumen</th>
-                    <th className="px-6 py-4 text-center">Format</th>
-                    <th className="px-6 py-4 text-right">Aksi</th>
+                                        <th className="px-6 py-4 text-right">Aksi</th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-100">
                   {filteredDokumen.length === 0 ? (
                     <tr>
-                      <td colSpan="3" className="px-6 py-10 text-center text-slate-400 font-semibold">
+                      <td colSpan="2" className="px-6 py-10 text-center text-slate-400 font-semibold">
                         Belum ada dokumen pada kategori ini.
                       </td>
                     </tr>
@@ -792,11 +674,13 @@ const Home = () => {
                                 🔒 Khusus Terdaftar (Private)
                               </span>
                             )}
+                            
                             {item.deskripsi && (
                               <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">
                                 {renderCleanDescription(item.deskripsi)}
                               </p>
                             )}
+                            
                             {item.tahun && (
                               <p className="text-[10px] text-emerald-700 mt-2 font-black uppercase">
                                 Tahun {item.tahun}
@@ -804,22 +688,7 @@ const Home = () => {
                             )}
                           </td>
 
-                          <td className="px-6 py-5 text-center">
-                            {files.length > 0 ? (
-                              <div className="flex flex-wrap justify-center gap-1">
-                                {files.map((file) => (
-                                  <span
-                                    key={file.id}
-                                    className="bg-red-100 text-red-700 px-3 py-1 rounded-full font-black text-[9px] uppercase"
-                                  >
-                                    {getFileFormat(file.nama_file)}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 text-[10px]">-</span>
-                            )}
-                          </td>
+                          
 
                           <td className="px-6 py-5 text-right">
                             {files.length > 0 ? (
@@ -1065,9 +934,6 @@ const Home = () => {
           </div>
         </div>
       </footer>
-
-      {/* --- WIDGET TOMBOL AKSESIBILITAS DENGAN DATA PROPS YANG SUDAH DIPERBAIKI --- */}
-      <AccessibilityWidget informasiPublik={informasiPublik} activeTab={activeTab} />
     </div>
   );
 };
