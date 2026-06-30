@@ -622,7 +622,35 @@ app.delete(
     res.json({ message: "Informasi publik berhasil dihapus" });
   }),
 );
+app.delete(
+  "/api/admin/informasi-publik/:id/files/:fileId",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { id, fileId } = req.params;
 
+    const [rows] = await db.query(
+      "SELECT nama_file FROM informasi_publik_berkas WHERE id = ? AND informasi_id = ? LIMIT 1",
+      [fileId, id],
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Berkas tidak ditemukan",
+      });
+    }
+
+    deleteUploadedFile(rows[0].nama_file);
+
+    await db.query(
+      "DELETE FROM informasi_publik_berkas WHERE id = ? AND informasi_id = ?",
+      [fileId, id],
+    );
+
+    res.json({
+      message: "Berkas berhasil dihapus",
+    });
+  }),
+);
 /* =========================
    PERMOHONAN INFORMASI
 ========================= */
@@ -1621,7 +1649,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 async function startServer() {
   const distPath = path.resolve(__dirname, "../dist");
