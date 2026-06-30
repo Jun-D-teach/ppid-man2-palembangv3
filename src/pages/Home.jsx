@@ -72,21 +72,16 @@ const getInfoCategoryKey = (pageOrLabel) => {
   return label;
 };
 
-// Fungsi pembantu cerdas agar teks deskripsi yang mengandung URL otomatis menjadi link aktif
 const renderCleanDescription = (text) => {
   if (!text) return null;
 
-  // Pola regex untuk mendeteksi link URL (http:// atau https://),
-  // dimodifikasi agar mengabaikan tanda kurung tutup ')' di akhir link.
   const urlRegex = /((?:https?|http):\/\/[^\s\)]+)/g;
   const parts = text.split(urlRegex);
 
   return (
     <>
       {parts.map((part, partIdx) => {
-        // Cek apakah bagian ini adalah URL
         if (part.match(/https?:\/\/[^\s]+/)) {
-          // Bersihkan karakter aneh di ujung URL jika ada
           const cleanUrl = part.replace(/[\)\]\.,\s]+$/, '');
           const urlTitle = cleanUrl.split('/').pop() || "Buka Tautan";
           
@@ -106,7 +101,6 @@ const renderCleanDescription = (text) => {
             </span>
           );
         }
-        // Bagian teks biasa tampil menyambung secara normal
         return <span key={partIdx}>{part}</span>;
       })}
     </>
@@ -123,6 +117,7 @@ const Home = () => {
   const [searchDokumen, setSearchDokumen] = useState("");
  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(null);
 
   const [cekStatusOpen, setCekStatusOpen] = useState(false);
   const [cekStatusQuery, setCekStatusQuery] = useState("");
@@ -258,28 +253,21 @@ const Home = () => {
     }
   };
 
-  // --- FIX BARU: LOGIKA SCROLL PADA KLIK SUBMENU ---
   const handleMenuPageClick = (page) => {
     if (!page?.slug) {
       setMobileMenuOpen(false);
       return;
     }
 
-    // CEK KHUSUS: Jika ini submenu dari "INFORMASI PUBLIK"
     if (isInformasiPublikPage(page)) {
-      // 1. Dapatkan kunci kategori (Informasi Berkala, Serta Merta, dll.)
       const categoryKey = getInfoCategoryKey(page);
-      
-      // 2. Ganti tab aktif di bawah secara dinamis
       setActiveTab(categoryKey);
 
-      // 3. Scroll halus ke bagian tabel informasi publik
       const tableSection = document.getElementById("daftar-informasi");
       if (tableSection) {
         tableSection.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } else {
-      // Perilaku normal untuk menu lain (Profil, Regulasi, dll.): Pindah halaman
       navigate(`/page/${page.slug}`);
     }
 
@@ -290,6 +278,14 @@ const Home = () => {
     const page = menuPages.find((p) => p.slug === "prosedur-permohonan");
     if (page?.slug) {
       navigate(`/page/${page.slug}`);
+    }
+  };
+
+  const toggleMobileDropdown = (menuName) => {
+    if (mobileDropdownOpen === menuName) {
+      setMobileDropdownOpen(null);
+    } else {
+      setMobileDropdownOpen(menuName);
     }
   };
 
@@ -407,32 +403,43 @@ const Home = () => {
         </div>
 
         {mobileMenuOpen && (
-          <div className="xl:hidden border-t border-emerald-100 bg-white px-4 py-3 shadow-inner">
+          <div className="xl:hidden border-t border-emerald-100 bg-white px-4 py-3 shadow-inner max-h-[75vh] overflow-y-auto">
             <ul className="flex flex-col gap-1">
               {navigation.map((nav) => (
-                <li key={nav.name}>
+                <li key={nav.name} className="border-b border-gray-100 last:border-0 pb-1">
                   {nav.href ? (
                     <Link
                       to={nav.href}
-                      className="block rounded-lg px-4 py-3 text-sm font-black text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                      className="block rounded-lg px-4 py-3 text-sm font-black text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 text-left"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {nav.name}
                     </Link>
                   ) : (
                     <>
-                      <p className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-700">
-                        {nav.name}
-                      </p>
-                      {nav.submenu?.map((sub, idx) => (
-                        <button
-                          key={sub.id || sub.slug || sub.menu_label || idx}
-                          onClick={() => handleMenuPageClick(sub)}
-                          className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-50 last:border-0 w-full text-left"
-                        >
-                          {sub.menu_label}
-                        </button>
-                      ))}
+                      <button
+                        onClick={() => toggleMobileDropdown(nav.name)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-sm font-black uppercase tracking-wider text-emerald-800 hover:bg-emerald-50/50 rounded-lg"
+                      >
+                        <span>{nav.name}</span>
+                        <span className={`text-[10px] transition-transform duration-200 ${mobileDropdownOpen === nav.name ? 'rotate-180' : ''}`}>
+                          ▼
+                        </span>
+                      </button>
+                      
+                      {mobileDropdownOpen === nav.name && (
+                        <div className="bg-slate-50/70 rounded-lg mt-1 mb-2 pl-2 border-l-2 border-emerald-600 animate-fade-in">
+                          {nav.submenu?.map((sub, idx) => (
+                            <button
+                              key={sub.id || sub.slug || sub.menu_label || idx}
+                              onClick={() => handleMenuPageClick(sub)}
+                              className="block px-6 py-3 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 border-b border-gray-100/50 last:border-0 w-full text-left"
+                            >
+                              {sub.menu_label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
                 </li>
@@ -551,7 +558,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- BAGIAN DAFTAR INFORMASI (DENGAN ID UNTUK SCROLL) --- */}
       <section id="daftar-informasi" className="mx-auto max-w-7xl px-4 md:px-6 py-20">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter">
@@ -614,8 +620,8 @@ const Home = () => {
                       PPID MAN 2 Palembang • Informasi Publik
                     </p>
                     <div className="text-sm leading-8 text-slate-700 text-justify prose max-w-none">
-  {renderCleanDescription(activeInfoPage.isi)}
-</div>
+                      {renderCleanDescription(activeInfoPage.isi)}
+                    </div>
                   </div>
                 </div>
 
@@ -650,7 +656,7 @@ const Home = () => {
                 <thead className="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">Nama Dokumen</th>
-                                        <th className="px-6 py-4 text-right">Aksi</th>
+                    <th className="px-6 py-4 text-right">Aksi</th>
                   </tr>
                 </thead>
 
@@ -687,8 +693,6 @@ const Home = () => {
                               </p>
                             )}
                           </td>
-
-                          
 
                           <td className="px-6 py-5 text-right">
                             {files.length > 0 ? (
