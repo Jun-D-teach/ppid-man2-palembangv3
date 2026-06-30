@@ -106,7 +106,40 @@ const renderCleanDescription = (text) => {
     </>
   );
 };
+// Komponen baru untuk membatasi deskripsi panjang di HP / Desktop
+const ExpandableDescription = ({ text }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
 
+  if (!text) return null;
+
+  // Jika teks pendek (kurang dari 120 karakter), langsung tampilkan semua
+  if (text.length <= 120) {
+    return (
+      <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">
+        {renderCleanDescription(text)}
+      </p>
+    );
+  }
+
+  // Jika panjang, potong teks untuk tampilan awal
+  const truncatedText = text.substring(0, 120) + "...";
+
+  return (
+    <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">
+      {renderCleanDescription(isExpanded ? text : truncatedText)}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault(); // Mencegah trigger klik baris/tabel jika ada
+          setIsExpanded(!isExpanded);
+        }}
+        className="ml-1 text-emerald-700 hover:text-emerald-950 font-bold underline text-[10px] cursor-pointer inline-block"
+      >
+        {isExpanded ? "Tampilkan Sedikit" : "Selengkapnya"}
+      </button>
+    </p>
+  );
+};
 const Home = () => {
   const [activeTab, setActiveTab] = useState("Informasi Berkala");
   const [user, setUser] = useState(null);
@@ -253,24 +286,14 @@ const Home = () => {
     }
   };
 
-  const handleMenuPageClick = (page) => {
+ const handleMenuPageClick = (page) => {
     if (!page?.slug) {
       setMobileMenuOpen(false);
       return;
     }
 
-    if (isInformasiPublikPage(page)) {
-      const categoryKey = getInfoCategoryKey(page);
-      setActiveTab(categoryKey);
-
-      const tableSection = document.getElementById("daftar-informasi");
-      if (tableSection) {
-        tableSection.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    } else {
-      navigate(`/page/${page.slug}`);
-    }
-
+    // Sekarang semua menu (termasuk INFORMASI PUBLIK) langsung mengarah ke halaman baru /page/slug
+    navigate(`/page/${page.slug}`);
     setMobileMenuOpen(false);
   };
 
@@ -681,11 +704,9 @@ const Home = () => {
                               </span>
                             )}
                             
-                            {item.deskripsi && (
-                              <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">
-                                {renderCleanDescription(item.deskripsi)}
-                              </p>
-                            )}
+                           {item.deskripsi && (
+  <ExpandableDescription text={item.deskripsi} />
+)}
                             
                             {item.tahun && (
                               <p className="text-[10px] text-emerald-700 mt-2 font-black uppercase">
