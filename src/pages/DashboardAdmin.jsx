@@ -40,6 +40,7 @@ const initialInfoForm = {
   tahun: new Date().getFullYear().toString(),
   status_publish: "Tampil",
   files: [],
+  existingFiles: [],
 };
 
 const statusStyle = {
@@ -347,10 +348,22 @@ const DashboardAdmin = () => {
       tahun: item.tahun || "",
       status_publish: item.status_publish || item.status || "Tampil",
       files: [],
+       existingFiles: item.berkas_list || []
     });
     setShowInfoForm(true);
   };
+const handleDeleteExistingFile = async (fileId) => {
+    if (!window.confirm("Hapus berkas ini?")) return;
 
+    await api.delete(
+        `/api/admin/informasi-publik/${infoForm.id}/files/${fileId}`
+    );
+
+    setInfoForm(prev => ({
+        ...prev,
+        existingFiles: prev.existingFiles.filter(f => f.id !== fileId)
+    }));
+};
   const closeInfoForm = () => {
     setInfoForm({ ...initialInfoForm, kategori: kategoriAktif });
     setShowInfoForm(false);
@@ -454,7 +467,34 @@ const DashboardAdmin = () => {
       alert("Isi pesan jawaban atau pilih berkas balasan terlebih dahulu.");
       return;
     }
+{infoForm.existingFiles?.length > 0 && (
+    <div className="mb-4">
+        <label className="block font-semibold mb-2">
+            Berkas yang sudah ada
+        </label>
 
+        <div className="space-y-2">
+            {infoForm.existingFiles.map(file => (
+                <div
+                    key={file.id}
+                    className="flex items-center justify-between border rounded p-2"
+                >
+                    <span className="text-sm">
+                        📄 {file.nama_asli}
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={() => handleDeleteExistingFile(file.id)}
+                        className="text-red-600 hover:text-red-800"
+                    >
+                        Hapus
+                    </button>
+                </div>
+            ))}
+        </div>
+    </div>
+)}
     setUploading(true);
     const formData = new FormData();
     formData.append("pesan_admin", pesanAdmin);
@@ -1317,7 +1357,34 @@ const DashboardAdmin = () => {
           </div>
         </div>
       )}
+{infoForm.existingFiles && infoForm.existingFiles.length > 0 && (
+  <div className="mb-5">
+    <label className="mb-2 block text-sm font-bold text-slate-700">
+      Berkas yang sudah diupload
+    </label>
 
+    <div className="space-y-2">
+      {infoForm.existingFiles.map((file) => (
+        <div
+          key={file.id}
+          className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
+        >
+          <span className="truncate text-sm">
+            📄 {file.nama_asli}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => handleDeleteExistingFile(file.id)}
+            className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700"
+          >
+            Hapus
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
       {showInfoForm && (
         <div className="fixed inset-0 z-[56] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
@@ -1353,6 +1420,32 @@ const DashboardAdmin = () => {
 
               <label className="md:col-span-2">
                 <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Nama / Judul Dokumen</span>
+               {infoForm.existingFiles && infoForm.existingFiles.length > 0 && (
+    <div className="mt-4 mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left">
+      <div className="mb-2 text-xs font-black uppercase text-slate-500">
+        Berkas yang sudah diupload
+      </div>
+
+      {infoForm.existingFiles.map((file) => (
+        <div
+          key={file.id}
+          className="flex items-center justify-between border-b py-2 last:border-b-0"
+        >
+          <span className="text-sm">
+            📄 {file.nama_asli}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => handleDeleteExistingFile(file.id)}
+            className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700"
+          >
+            Hapus
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
                 <input
                   type="text"
                   value={infoForm.judul}
@@ -1399,6 +1492,7 @@ const DashboardAdmin = () => {
               <label className="md:col-span-2 block rounded-3xl border-2 border-dashed border-slate-200 bg-white p-5 text-center transition hover:border-emerald-300 hover:bg-emerald-50/40">
                 <span className="block text-sm font-black text-slate-800">Upload Berkas</span>
                 <span className="mt-1 block text-xs text-slate-400">Bisa pilih banyak file sekaligus. PDF, Word, Excel, gambar, dan dokumen lain.</span>
+               
                 <input
                   type="file"
                   multiple
