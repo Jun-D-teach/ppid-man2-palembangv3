@@ -20,6 +20,10 @@ const initialKonten = {
   logo_url: "https://man2plg.sch.id/Foto/logo.png",
   kontak_telepon: "(0711) 123456",
   kontak_email: "ppid@man2plg.sch.id",
+  sosmed_ig: "",
+  sosmed_fb: "",
+  sosmed_twitter: "",
+  sosmed_yt: "",
   alamat: "Jl. Prof. KH. Zainal Abidin, Kec. Kemuning, Palembang",
   banner_badge: "Portal Layanan Informasi",
   banner_judul: "Keterbukaan Informasi",
@@ -953,55 +957,122 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-<label className="md:col-span-2">
-  <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
-    Judul Prosedur Layanan
-  </span>
+              <label className="md:col-span-2">
+                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
+                  Judul Prosedur Layanan
+                </span>
 
-  <input
-    type="text"
-    value={konten.prosedur_judul || ""}
-    onChange={(e) =>
-      setKonten({
-        ...konten,
-        prosedur_judul: e.target.value,
-      })
-    }
-    placeholder="Contoh: Prosedur Permohonan Informasi"
-    className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-  />
-</label>
+                <input
+                  type="text"
+                  value={konten.prosedur_judul || ""}
+                  onChange={(e) =>
+                    setKonten({
+                      ...konten,
+                      prosedur_judul: e.target.value,
+                    })
+                  }
+                  placeholder="Contoh: Prosedur Permohonan Informasi"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                />
+              </label>
 
-<label className="md:col-span-2">
-  <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
-    Isi Prosedur Layanan
-  </span>
+              <label className="md:col-span-2">
+                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
+                  Isi Prosedur Layanan
+                </span>
 
-  <textarea
-    rows="8"
-    value={konten.prosedur_isi || ""}
-    onChange={(e) =>
-      setKonten({
-        ...konten,
-        prosedur_isi: e.target.value,
-      })
-    }
-    placeholder={`Contoh:
-1. Pemohon melakukan login.
-2. Mengisi formulir permohonan informasi.
-3. Admin memproses permohonan.
-4. Admin memberikan jawaban atau dokumen.
-5. Pemohon dapat mengunduh hasil layanan.`}
-    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-  />
-</label>
-                  <button
+                <textarea
+                  rows="8"
+                  value={konten.prosedur_isi || ""}
+                  onChange={(e) =>
+                    setKonten({
+                      ...konten,
+                      prosedur_isi: e.target.value,
+                    })
+                  }
+                  placeholder={`Contoh:
+              1. Pemohon melakukan login.
+              2. Mengisi formulir permohonan informasi.
+              3. Admin memproses permohonan.
+              4. Admin memberikan jawaban atau dokumen.
+              5. Pemohon dapat mengunduh hasil layanan.`}
+                  className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                />
+              </label>
+                              <div className="md:col-span-2 mt-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-px flex-1 bg-slate-200"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Link Media Sosial</span>
+                  <div className="h-px flex-1 bg-slate-200"></div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label>
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Instagram URL</span>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-600 font-bold">IG</span>
+                      <input
+                        type="text"
+                        value={konten.sosmed_ig || ""}
+                        onChange={(e) => updateKonten("sosmed_ig", e.target.value)}
+                        placeholder="https://instagram.com/..."
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                      />
+                    </div>
+                  </label>
+
+                  <label>
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Facebook URL</span>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 font-bold">FB</span>
+                      <input
+                        type="text"
+                        value={konten.sosmed_fb || ""}
+                        onChange={(e) => updateKonten("sosmed_fb", e.target.value)}
+                        placeholder="https://facebook.com/..."
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                      />
+                    </div>
+                  </label>
+
+                  <label>
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">X / Twitter URL</span>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 font-bold">X</span>
+                      <input
+                        type="text"
+                        value={konten.sosmed_twitter || ""}
+                        onChange={(e) => updateKonten("sosmed_twitter", e.target.value)}
+                        placeholder="https://x.com/..."
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                      />
+                    </div>
+                  </label>
+
+                  <label>
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">YouTube URL</span>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-red-600 font-bold">YT</span>
+                      <input
+                        type="text"
+                        value={konten.sosmed_yt || ""}
+                        onChange={(e) => updateKonten("sosmed_yt", e.target.value)}
+                        placeholder="https://youtube.com/..."
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+                                <button
                     onClick={handleUpdateBeranda}
                     disabled={savingBeranda}
                     className="md:col-span-2 rounded-2xl bg-emerald-700 py-4 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
                   >
                     {savingBeranda ? "Menyimpan..." : "Simpan Konten Halaman Utama"}
                   </button>
+        
+
                 </div>
               ) : (
                 <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
@@ -1421,19 +1492,19 @@ const handleDeleteExistingFile = async (fileId) => {
               <label className="md:col-span-2">
                 <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Nama / Judul Dokumen</span>
                {infoForm.existingFiles && infoForm.existingFiles.length > 0 && (
-    <div className="mt-4 mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left">
-      <div className="mb-2 text-xs font-black uppercase text-slate-500">
-        Berkas yang sudah diupload
-      </div>
+                <div className="mt-4 mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left">
+                  <div className="mb-2 text-xs font-black uppercase text-slate-500">
+                    Berkas yang sudah diupload
+                  </div>
 
-      {infoForm.existingFiles.map((file) => (
-        <div
-          key={file.id}
-          className="flex items-center justify-between border-b py-2 last:border-b-0"
-        >
-          <span className="text-sm">
-            📄 {file.nama_asli}
-          </span>
+                  {infoForm.existingFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex items-center justify-between border-b py-2 last:border-b-0"
+                    >
+                      <span className="text-sm">
+                        📄 {file.nama_asli}
+                      </span>
 
           <button
             type="button"
