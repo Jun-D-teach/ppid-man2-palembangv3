@@ -113,31 +113,57 @@ function NavbarAtas() {
   return (
     <div className="w-full">
       {/* Top Utility Bar */}
-      <div className="bg-[#004d40] py-2 text-white shadow-inner hidden md:block">
-        <div className="mx-auto flex max-w-7xl justify-between px-6 text-[10px] font-bold tracking-widest uppercase opacity-90">
-          <div className="flex gap-6">
-            <span>📞 {konten.kontak_telepon || "(0711) 123456"}</span>
-            <span>📧 {konten.kontak_email || "ppid@man2plg.sch.id"}</span>
-          </div>
-          <div className="flex gap-4 items-center">
-            {user ? (
-              <div className="flex gap-4 items-center">
-                <span className="text-emerald-300 italic">Halo, {user.nama_lengkap || user.nama}</span>
-                <button onClick={handleLogout} className="bg-red-600 px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold cursor-pointer">
-                  LOGOUT
-                </button>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="bg-red-600 px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold">
-                  LOGIN USER
-                </Link>
-                <Link to="/register" className="hover:text-emerald-300">DAFTAR</Link>
-              </>
-            )}
-          </div>
-        </div>
+     
+<div className="bg-[#004d40] py-2 text-white shadow-inner hidden md:block">
+  <div className="mx-auto flex max-w-7xl justify-between px-6 text-[10px] font-bold tracking-widest uppercase opacity-90">
+    <div className="flex gap-6 items-center">
+      <span>📞 {konten.kontak_telepon || "(0711) 123456"}</span>
+      <span>📧 {konten.kontak_email || "ppid@man2plg.sch.id"}</span>
+      
+      {/* --- ICON SOSIAL MEDIA OTOMATIS --- */}
+      <div className="flex gap-4 items-center border-l border-white/20 pl-6 ml-2 text-sm">
+        {konten.sosmed_ig && (
+          <a href={konten.sosmed_ig} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="Instagram">
+            <i className="fa-brands fa-instagram"></i>
+          </a>
+        )}
+        {konten.sosmed_fb && (
+          <a href={konten.sosmed_fb} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="Facebook">
+            <i className="fa-brands fa-facebook"></i>
+          </a>
+        )}
+        {konten.sosmed_twitter && (
+          <a href={konten.sosmed_twitter} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="X (Twitter)">
+            <i className="fa-brands fa-x-twitter"></i>
+          </a>
+        )}
+        {konten.sosmed_yt && (
+          <a href={konten.sosmed_yt} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="YouTube">
+            <i className="fa-brands fa-youtube"></i>
+          </a>
+        )}
       </div>
+    </div>
+
+    <div className="flex gap-4 items-center">
+      {user ? (
+        <div className="flex gap-4 items-center">
+          <span className="text-emerald-300 italic">Halo, {user.nama_lengkap || user.nama}</span>
+          <button onClick={handleLogout} className="bg-red-600 px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold cursor-pointer">
+            LOGOUT
+          </button>
+        </div>
+      ) : (
+        <>
+          <Link to="/login" className="bg-red-600 px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold">
+            LOGIN USER
+          </Link>
+          <Link to="/register" className="hover:text-emerald-300">DAFTAR</Link>
+        </>
+      )}
+    </div>
+  </div>
+</div>
 
       {/* Main Navbar */}
       <nav className="sticky top-0 z-50 text-center bg-white/95 backdrop-blur shadow-md border-b-2 border-emerald-800">
