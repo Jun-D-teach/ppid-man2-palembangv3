@@ -1,140 +1,214 @@
 import React, { useState, useEffect } from "react";
 
-export default function AccessibilityWidget() {
+const AccessibilityWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [fontSize, setFontSize] = useState(100); // dalam persen (%)
-  const [highContrast, setHighContrast] = useState(false);
 
-  // Menerapkan pengaturan langsung ke elemen HTML root/body global
+  // State untuk semua fitur aksesibilitas
+  const [textScale, setTextScale] = useState(100); // 100%, 120%, 140%, 160%
+  const [contrast, setContrast] = useState("normal"); // normal, dark, light, invert
+  const [letterSpacing, setLetterSpacing] = useState("normal"); // normal, wide, wider
+  const [underlineLinks, setUnderlineLinks] = useState(false);
+  const [bigCursor, setBigCursor] = useState(false);
+  const [stopAnimations, setStopAnimations] = useState(false);
+  const [readableFont, setReadableFont] = useState(false);
+  const [isReading, setIsReading] = useState(false);
+
+  // Effect untuk menerapkan perubahan pada tag <html> atau <body>
   useEffect(() => {
-    // 1. Pengaturan Ukuran Font Global
-    document.documentElement.style.fontSize = `${fontSize}%`;
+    const root = document.documentElement;
 
-    // 2. Pengaturan Kontras Tinggi Global
-    if (highContrast) {
-      document.documentElement.classList.add("high-contrast-mode");
-      // Menambahkan style manual cadangan jika tailwind class belum diatur
-      const style = document.createElement("style");
-      style.id = "high-contrast-styles";
-      style.innerHTML = `
-        .high-contrast-mode body, 
-        .high-contrast-mode div:not(.accessibility-menu), 
-        .high-contrast-mode header, 
-        .high-contrast-mode main, 
-        .high-contrast-mode table, 
-        .high-contrast-mode section {
-          background-color: #000000 !important;
-          color: #FFFF00 !important;
-          border-color: #FFFF00 !important;
-        }
-        .high-contrast-mode a, 
-        .high-contrast-mode button:not(.accessibility-toggle-btn) {
-          color: #00FFFF !important;
-          text-decoration: underline !important;
-        }
-      `;
-      if (!document.getElementById("high-contrast-styles")) {
-        document.head.appendChild(style);
-      }
-    } else {
-      document.documentElement.classList.remove("high-contrast-mode");
-      const styleElement = document.getElementById("high-contrast-styles");
-      if (styleElement) styleElement.remove();
+    // 1. Ukuran Teks
+    root.style.fontSize = textScale === 100 ? "" : `${textScale}%`;
+
+    // 2. Kontras
+    root.classList.remove("accessibility-dark", "accessibility-light", "accessibility-invert");
+    if (contrast !== "normal") {
+      root.classList.add(`accessibility-${contrast}`);
     }
-  }, [fontSize, highContrast]);
 
+    // 3. Jarak Huruf
+    root.style.letterSpacing =
+      letterSpacing === "wide" ? "0.1em" : letterSpacing === "wider" ? "0.2em" : "";
+
+    // 4. Garis Bawah Link
+    if (underlineLinks) {
+      root.classList.add("accessibility-underline-links");
+    } else {
+      root.classList.remove("accessibility-underline-links");
+    }
+
+    // 5. Kursor Besar
+    if (bigCursor) {
+      root.classList.add("accessibility-big-cursor");
+    } else {
+      root.classList.remove("accessibility-big-cursor");
+    }
+
+    // 6. Hentikan Animasi
+    if (stopAnimations) {
+      root.classList.add("accessibility-stop-animations");
+    } else {
+      root.classList.remove("accessibility-stop-animations");
+    }
+
+    // 7. Font Mudah Dibaca (Dyslexia Friendly/Sans-serif standar)
+    if (readableFont) {
+      root.classList.add("accessibility-readable-font");
+    } else {
+      root.classList.remove("accessibility-readable-font");
+    }
+  }, [textScale, contrast, letterSpacing, underlineLinks, bigCursor, stopAnimations, readableFont]);
+
+  // Fungsi Text to Speech (Membaca Halaman)
+  const handleReadPage = () => {
+    if (isReading) {
+      window.speechSynthesis.cancel();
+      setIsReading(false);
+    } else {
+      const pageText = document.body.innerText || "";
+      const utterance = new SpeechSynthesisUtterance(pageText);
+      utterance.lang = "id-ID"; // Bahasa Indonesia
+      utterance.onend = () => setIsReading(false);
+      window.speechSynthesis.speak(utterance);
+      setIsReading(true);
+    }
+  };
+
+  // Reset Semua Pengaturan
   const handleReset = () => {
-    setFontSize(100);
-    setHighContrast(false);
+    setTextScale(100);
+    setContrast("normal");
+    setLetterSpacing("normal");
+    setUnderlineLinks(false);
+    setBigCursor(false);
+    setStopAnimations(false);
+    setReadableFont(false);
+    window.speechSynthesis.cancel();
+    setIsReading(false);
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] font-sans text-slate-800">
-      {/* TOMBOL UTAMA UTK BUKA/TUTUP (IKON DISABILITAS) */}
+    <div className="fixed bottom-6 right-6 z-[9999] font-sans select-none">
+      {/* Tombol Utama Aksesibilitas */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="accessibility-toggle-btn flex h-14 w-14 items-center justify-center rounded-full bg-emerald-800 text-white shadow-2xl hover:bg-emerald-700 active:scale-95 transition-all border-2 border-white"
-        title="Menu Aksesibilitas Disabilitas"
-        type="button"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-2xl hover:bg-blue-700 hover:scale-105 transition-all cursor-pointer border-2 border-white"
+        title="Menu Aksesibilitas"
       >
         {isOpen ? (
-          <span className="text-xl font-bold">✕</span>
+          <span className="text-2xl font-bold">✕</span>
         ) : (
-          // Ikon Orang Disabilitas Universal
-          <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
-            <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.5.15 0 0 0-3.15 0v1.5m3.15 0 .075 11.25a3 3 0 1 1-6 0V4.575m12 6h.008v.008H18v-.008Zm0 3h.008v.008H18v-.008Zm0 3h.008v.008H18v-.008Zm-3-6h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
           </svg>
         )}
       </button>
 
-      {/* MENU POPUP PENGATURAN AKSESIBILITAS */}
+      {/* Panel Menu Banyak Grid */}
       {isOpen && (
-        <div className="accessibility-menu absolute bottom-16 right-0 w-72 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl animate-fade-in">
-          <div className="border-b border-gray-100 pb-2 mb-4">
-            <h3 className="font-black text-xs uppercase tracking-wider text-emerald-900">
-              ♿ Alat Bantu Aksesibilitas
-            </h3>
-            <p className="text-[10px] text-slate-400 font-medium">
-              Ramah Disabilitas & Ramah Netra
-            </p>
+        <div className="absolute bottom-18 right-0 w-80 sm:w-96 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 text-slate-800">
+          <div className="flex items-center justify-between border-b pb-3 mb-4">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Menu Aksesibilitas</h3>
+              <p className="text-[10px] text-slate-400 font-medium">Penyesuaian ramah disabilitas</p>
+            </div>
+            <button
+              onClick={handleReset}
+              className="rounded-lg bg-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase text-slate-600 hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
+            >
+              Reset 🔄
+            </button>
           </div>
 
-          <div className="space-y-4">
-            {/* OPSI 1: UKURAN HURUF */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 mb-2">
-                🔎 Ukuran Teks: <span className="text-emerald-700">{fontSize}%</span>
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFontSize(Math.max(80, fontSize - 10))}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-lg text-xs transition"
-                >
-                  A- (Perkecil)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFontSize(Math.min(150, fontSize + 10))}
-                  className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold py-2 rounded-lg text-xs transition border border-emerald-200"
-                >
-                  A+ (Perbesar)
-                </button>
-              </div>
-            </div>
+          {/* Grid Menu Fitur */}
+          <div className="grid grid-cols-2 gap-3">
+            
+            {/* 1. Ukuran Teks */}
+            <button
+              onClick={() => setTextScale(prev => prev >= 160 ? 100 : prev + 20)}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${textScale > 100 ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">🔍</span>
+              <span className="text-[11px] uppercase tracking-wide">Ukuran Teks</span>
+              <span className="text-[9px] opacity-60 mt-0.5">{textScale}%</span>
+            </button>
 
-            {/* OPSI 2: KONTRAS TINGGI */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 mb-1.5">
-                🎨 Mode Warna Tampilan:
-              </label>
-              <button
-                type="button"
-                onClick={() => setHighContrast(!highContrast)}
-                className={`w-full font-bold py-2 px-3 rounded-lg text-xs transition border flex items-center justify-between ${
-                  highContrast
-                    ? "bg-yellow-400 border-yellow-500 text-black shadow-inner"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-gray-200"
-                }`}
-              >
-                <span>⚫ Kontras Tinggi (High Contrast)</span>
-                <span>{highContrast ? "AKTIF" : "NONAKTIF"}</span>
-              </button>
-            </div>
+            {/* 2. Kontras Warna */}
+            <button
+              onClick={() => setContrast(prev => prev === "normal" ? "dark" : prev === "dark" ? "light" : prev === "light" ? "invert" : "normal")}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${contrast !== "normal" ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">🌓</span>
+              <span className="text-[11px] uppercase tracking-wide">Kontras Warna</span>
+              <span className="text-[9px] opacity-60 mt-0.5 capitalize">{contrast}</span>
+            </button>
 
-            {/* OPSI 3: RESET */}
-            <div className="pt-2 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition"
-              >
-                🔄 Kembalikan Normal (Reset)
-              </button>
-            </div>
+            {/* 3. Baca Halaman (TTS) */}
+            <button
+              onClick={handleReadPage}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${isReading ? 'bg-emerald-50 border-emerald-400 text-emerald-900 font-bold animate-pulse' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">🗣️</span>
+              <span className="text-[11px] uppercase tracking-wide">Baca Halaman</span>
+              <span className="text-[9px] opacity-60 mt-0.5">{isReading ? "Membaca..." : "Matikan Suara"}</span>
+            </button>
+
+            {/* 4. Font Mudah Dibaca */}
+            <button
+              onClick={() => setReadableFont(!readableFont)}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${readableFont ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">🔤</span>
+              <span className="text-[11px] uppercase tracking-wide">Font Terbaca</span>
+              <span className="text-[9px] opacity-60 mt-0.5">{readableFont ? "Aktif" : "Bawaan"}</span>
+            </button>
+
+            {/* 5. Jarak Huruf */}
+            <button
+              onClick={() => setLetterSpacing(prev => prev === "normal" ? "wide" : prev === "wide" ? "wider" : "normal")}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${letterSpacing !== "normal" ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">↔️</span>
+              <span className="text-[11px] uppercase tracking-wide">Jarak Huruf</span>
+              <span className="text-[9px] opacity-60 mt-0.5 capitalize">{letterSpacing}</span>
+            </button>
+
+            {/* 6. Garis Bawah Link */}
+            <button
+              onClick={() => setUnderlineLinks(!underlineLinks)}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${underlineLinks ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">🔗</span>
+              <span className="text-[11px] uppercase tracking-wide">Garis Bawah Link</span>
+              <span className="text-[9px] opacity-60 mt-0.5">{underlineLinks ? "Aktif" : "Mati"}</span>
+            </button>
+
+            {/* 7. Kursor Besar */}
+            <button
+              onClick={() => setBigCursor(!bigCursor)}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${bigCursor ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">🖱️</span>
+              <span className="text-[11px] uppercase tracking-wide">Kursor Besar</span>
+              <span className="text-[9px] opacity-60 mt-0.5">{bigCursor ? "Aktif" : "Mati"}</span>
+            </button>
+
+            {/* 8. Hentikan Animasi */}
+            <button
+              onClick={() => setStopAnimations(!stopAnimations)}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${stopAnimations ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+            >
+              <span className="text-xl mb-1">🚫</span>
+              <span className="text-[11px] uppercase tracking-wide">Hentikan Animasi</span>
+              <span className="text-[9px] opacity-60 mt-0.5">{stopAnimations ? "Aktif" : "Mati"}</span>
+            </button>
+
           </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default AccessibilityWidget;
