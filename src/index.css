@@ -1,1 +1,92 @@
 @import "tailwindcss";
+
+/* ==========================================
+   CSS GLOBAL AKSESIBILITAS (DISABILITAS)
+   ========================================== */
+
+/* 1. Kontras Gelap (Dark Contrast) */
+.accessibility-dark, 
+.accessibility-dark body, 
+.accessibility-dark main, 
+.accessibility-dark div:not([class*="fixed"]),
+.accessibility-dark section,
+.accessibility-dark table,
+.accessibility-dark td,
+.accessibility-dark th,
+.accessibility-dark header,
+.accessibility-dark nav {
+  background-color: #000000 !important;
+  color: #ffff00 !important; /* Teks kuning kontras tinggi */
+  border-color: #333333 !important;
+}
+
+.accessibility-dark a, 
+.accessibility-dark button:not([class*="fixed"]),
+.accessibility-dark h1,
+.accessibility-dark h2,
+.accessibility-dark h3,
+.accessibility-dark h4 {
+  color: #00ffff !important; /* Link dan judul warna cyan kontras */
+}
+
+/* 2. Kontras Terang (Light Contrast) */
+.accessibility-light, 
+.accessibility-light body,
+.accessibility-light main,
+.accessibility-light div:not([class*="fixed"]),
+.accessibility-light section,
+.accessibility-light table,
+.accessibility-light border {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.accessibility-light h1,
+.accessibility-light h2,
+.accessibility-light h3,
+.accessibility-light h4,
+.accessibility-light p,
+.accessibility-light td {
+  color: #000000 !important;
+}
+
+/* 3. Invert Warna (Monochrome / Kebalikan) */
+.accessibility-invert {
+  filter: invert(1) hue-rotate(180deg);
+}
+/* Supaya gambar, logo, dan widget tidak ikut rusak warnanya saat di-invert */
+.accessibility-invert img, 
+.accessibility-invert video,
+.accessibility-invert div[class*="fixed"],
+.accessibility-invert button[class*="fixed"] {
+  filter: invert(1) hue-rotate(180deg); 
+}
+
+/* 4. Paksa Garis Bawah Link (Underline) */
+.accessibility-underline-links a,
+.accessibility-underline-links button[role="link"] {
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
+
+/* 5. Kursor Besar (Big Cursor) */
+.accessibility-big-cursor, 
+.accessibility-big-cursor * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' stroke='%23fff' stroke-width='2' d='M4.5 3v15.3l3.9-3.9l2.4 5.5l2.6-1.1l-2.4-5.5l5-.1z'/%3E%3C/svg%3E"), auto !important;
+}
+
+/* 6. Hentikan Seluruh Animasi (Stop Animations) */
+.accessibility-stop-animations *, 
+.accessibility-stop-animations *::before, 
+.accessibility-stop-animations *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* 7. Font Mudah Dibaca (Readable Font untuk Dyslexia) */
+.accessibility-readable-font, 
+.accessibility-readable-font * {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
