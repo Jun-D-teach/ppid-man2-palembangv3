@@ -149,6 +149,12 @@ function NavbarAtas() {
                   <i className="fa-brands fa-youtube"></i>
                 </a>
               )}
+               {/* ✅ TAMBAHKAN TIKTOK DI SINI */}
+  {konten.sosmed_tiktok && (
+    <a href={konten.sosmed_tiktok} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="TikTok">
+      <i className="fa-brands fa-tiktok"></i>
+    </a>
+  )}
             </div>
 
             {/* Separator */}
