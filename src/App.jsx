@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
-import { api, clearAuth } from "./api"; // sesuaikan path api jika dibutuhkan
-
+import { api, clearAuth } from "./api";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -11,7 +10,7 @@ import AccessibilityWidget from "./components/AccessibilityWidget";
 import Page from "./pages/page";
 
 // ==========================================
-// 1. KOMPONEN NAVBAR / MENU ATAS UTUH DENGAN NAVIGASI DINAMIS API
+// 1. KOMPONEN NAVBAR ATAS (RESPONSIVE - FIXED MOBILE)
 // ==========================================
 function NavbarAtas() {
   const navigate = useNavigate();
@@ -48,7 +47,6 @@ function NavbarAtas() {
   const parentOrder = ["PROFIL", "REGULASI", "INFORMASI PUBLIK", "LAYANAN INFORMASI", "LAPORAN"];
 
   useEffect(() => {
-    // 1. Ambil data User dari LocalStorage
     const loggedInUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (loggedInUser && loggedInUser !== "undefined" && token) {
@@ -57,12 +55,10 @@ function NavbarAtas() {
       setUser(null);
     }
 
-    // 2. Ambil data branding beranda
     api.get("/api/beranda")
       .then((res) => setKonten(res.data || {}))
       .catch((err) => console.error(err));
 
-    // 3. Ambil data Menu Website
     api.get("/api/menu-pages")
       .then((res) => {
         if (res.data && Array.isArray(res.data)) {
@@ -112,60 +108,77 @@ function NavbarAtas() {
 
   return (
     <div className="w-full">
-      {/* Top Utility Bar */}
-     
-<div className="bg-[#004d40] py-2 text-white shadow-inner hidden md:block">
-  <div className="mx-auto flex max-w-7xl justify-between px-6 text-[10px] font-bold tracking-widest uppercase opacity-90">
-    <div className="flex gap-6 items-center">
-      <span>📞 {konten.kontak_telepon || "(0711) 123456"}</span>
-      <span>📧 {konten.kontak_email || "ppid@man2plg.sch.id"}</span>
-      
-      {/* --- ICON SOSIAL MEDIA OTOMATIS --- */}
-      <div className="flex gap-4 items-center border-l border-white/20 pl-6 ml-2 text-sm">
-        {konten.sosmed_ig && (
-          <a href={konten.sosmed_ig} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="Instagram">
-            <i className="fa-brands fa-instagram"></i>
-          </a>
-        )}
-        {konten.sosmed_fb && (
-          <a href={konten.sosmed_fb} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="Facebook">
-            <i className="fa-brands fa-facebook"></i>
-          </a>
-        )}
-        {konten.sosmed_twitter && (
-          <a href={konten.sosmed_twitter} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="X (Twitter)">
-            <i className="fa-brands fa-x-twitter"></i>
-          </a>
-        )}
-        {konten.sosmed_yt && (
-          <a href={konten.sosmed_yt} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="YouTube">
-            <i className="fa-brands fa-youtube"></i>
-          </a>
-        )}
-      </div>
-    </div>
+      {/* ============================================
+          TOP BAR HIJAU - RESPONSIVE (TAMPIL DI SEMUA LAYAR)
+      ============================================= */}
+      <div className="bg-[#004d40] text-white shadow-inner">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-[10px] font-bold tracking-widest uppercase opacity-90 md:px-6 md:py-2">
+          
+          {/* KIRI: Kontak & Email (HANYA DI DESKTOP) */}
+          <div className="hidden md:flex gap-6 items-center">
+            <span>📞 {konten.kontak_telepon || "(0711) 123456"}</span>
+            <span>📧 {konten.kontak_email || "ppid@man2plg.sch.id"}</span>
+          </div>
 
-    <div className="flex gap-4 items-center">
-      {user ? (
-        <div className="flex gap-4 items-center">
-          <span className="text-emerald-300 italic">Halo, {user.nama_lengkap || user.nama}</span>
-          <button onClick={handleLogout} className="bg-red-600 px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold cursor-pointer">
-            LOGOUT
-          </button>
+          {/* KIRI MOBILE: Hanya Teks Singkat */}
+          <div className="flex md:hidden items-center gap-2 text-[9px]">
+            <span className="truncate">📞 {konten.kontak_telepon || "(0711) 123456"}</span>
+          </div>
+
+          {/* KANAN: Sosmed + Login (TAMPIL DI SEMUA LAYAR) */}
+          <div className="flex gap-2 items-center md:gap-4">
+            {/* Icon Sosmed */}
+            <div className="flex gap-2 md:gap-3 items-center text-xs md:text-sm">
+              {konten.sosmed_ig && (
+                <a href={konten.sosmed_ig} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="Instagram">
+                  <i className="fa-brands fa-instagram"></i>
+                </a>
+              )}
+              {konten.sosmed_fb && (
+                <a href={konten.sosmed_fb} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="Facebook">
+                  <i className="fa-brands fa-facebook"></i>
+                </a>
+              )}
+              {konten.sosmed_twitter && (
+                <a href={konten.sosmed_twitter} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="X (Twitter)">
+                  <i className="fa-brands fa-x-twitter"></i>
+                </a>
+              )}
+              {konten.sosmed_yt && (
+                <a href={konten.sosmed_yt} target="_blank" rel="noreferrer" className="hover:text-emerald-300 transition-colors" title="YouTube">
+                  <i className="fa-brands fa-youtube"></i>
+                </a>
+              )}
+            </div>
+
+            {/* Separator */}
+            <div className="hidden md:block h-4 w-px bg-white/30"></div>
+
+            {/* Auth Buttons */}
+            {user ? (
+              <div className="flex gap-2 items-center">
+                <span className="hidden sm:inline text-emerald-300 italic text-[10px]">Halo, {user.nama_lengkap || user.nama}</span>
+                <button onClick={handleLogout} className="bg-red-600 px-2.5 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold text-[10px]">
+                  LOGOUT
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="bg-red-600 px-2.5 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold text-[10px]">
+                  LOGIN
+                </Link>
+                <Link to="/register" className="hidden sm:inline hover:text-emerald-300 text-[10px]">
+                  DAFTAR
+                </Link>
+              </>
+            )}
+          </div>
         </div>
-      ) : (
-        <>
-          <Link to="/login" className="bg-red-600 px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm text-white font-bold">
-            LOGIN USER
-          </Link>
-          <Link to="/register" className="hover:text-emerald-300">DAFTAR</Link>
-        </>
-      )}
-    </div>
-  </div>
-</div>
+      </div>
 
-      {/* Main Navbar */}
+      {/* ============================================
+          MAIN NAVBAR - STICKY
+      ============================================= */}
       <nav className="sticky top-0 z-50 text-center bg-white/95 backdrop-blur shadow-md border-b-2 border-emerald-800">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
           <Link to="/" className="flex items-center gap-3 group text-left">
@@ -239,9 +252,19 @@ function NavbarAtas() {
           </button>
         </div>
 
-        {/* Mobile Responsive Dropdown */}
+        {/* ============================================
+            MOBILE MENU DROPDOWN (LENGKAP DENGAN INFO KONTAK)
+        ============================================= */}
         {mobileMenuOpen && (
           <div className="xl:hidden border-t border-emerald-100 bg-white px-4 py-3 shadow-inner max-h-[75vh] overflow-y-auto">
+            {/* Info Kontak di Mobile Menu */}
+            <div className="mb-3 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 text-[11px] text-slate-600">
+              <p className="font-bold text-emerald-800 mb-1 uppercase tracking-wider text-[10px]">📍 Hubungi Kami</p>
+              <p>📞 {konten.kontak_telepon || "(0711) 123456"}</p>
+              <p>📧 {konten.kontak_email || "ppid@man2plg.sch.id"}</p>
+              <p className="truncate">🏫 {konten.alamat || "Jl. Prof. KH. Zainal Abidin, Palembang"}</p>
+            </div>
+
             <ul className="flex flex-col gap-1">
               {navigation.map((nav) => (
                 <li key={nav.name} className="border-b border-gray-100 last:border-0 pb-1">
@@ -264,7 +287,7 @@ function NavbarAtas() {
                           ▼
                         </span>
                       </button>
-                      
+
                       {mobileDropdownOpen === nav.name && (
                         <div className="bg-slate-50/70 rounded-lg mt-1 mb-2 pl-2 border-l-2 border-emerald-600">
                           {nav.submenu?.map((sub, idx) => (
@@ -282,6 +305,7 @@ function NavbarAtas() {
                   )}
                 </li>
               ))}
+
               {user && user.role?.toLowerCase() === "admin" && (
                 <li className="pt-2">
                   <Link to="/admin-ppid-man2" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center bg-amber-500 text-slate-950 rounded-lg py-2.5 text-xs font-black uppercase">
@@ -289,10 +313,15 @@ function NavbarAtas() {
                   </Link>
                 </li>
               )}
+
               {!user && (
-                <li className="grid grid-cols-2 gap-2 pt-2 md:hidden">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="bg-red-600 text-white rounded-lg py-2.5 text-center text-xs font-bold">LOGIN</Link>
-                  <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 border text-slate-700 rounded-lg py-2.5 text-center text-xs font-bold">DAFTAR</Link>
+                <li className="grid grid-cols-2 gap-2 pt-2">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="bg-red-600 text-white rounded-lg py-2.5 text-center text-xs font-bold">
+                    LOGIN
+                  </Link>
+                  <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="bg-slate-100 border text-slate-700 rounded-lg py-2.5 text-center text-xs font-bold">
+                    DAFTAR
+                  </Link>
                 </li>
               )}
             </ul>
@@ -308,7 +337,6 @@ function NavbarAtas() {
 // ==========================================
 function FooterBawah() {
   const [konten, setKonten] = useState({});
-
   useEffect(() => {
     api.get("/api/landing-content")
       .then((res) => {
@@ -316,7 +344,6 @@ function FooterBawah() {
       })
       .catch((err) => console.error("Gagal mengambil data footer:", err));
   }, []);
-
   return (
     <footer className="w-full bg-slate-950 border-t-4 border-emerald-700 text-slate-300 py-12 font-sans mt-auto">
       <div className="mx-auto max-w-5xl px-6 grid gap-8 sm:grid-cols-3">
@@ -370,8 +397,6 @@ function App() {
   return (
     <Router>
       <div className="flex min-h-screen flex-col bg-slate-50/30">
-        
-        {/* NavbarAtas permanen di luar Routes */}
         <NavbarAtas />
 
         <main className="flex-1">
@@ -387,7 +412,6 @@ function App() {
 
         <FooterBawah />
         <AccessibilityWidget />
-
       </div>
     </Router>
   );
