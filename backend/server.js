@@ -330,37 +330,53 @@ app.put(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const data = req.body;
+    // 🔍 DEBUG: Log data yang diterima
+    console.log("📥 Data diterima dari frontend:", {
+      sosmed_ig: data.sosmed_ig,
+      sosmed_fb: data.sosmed_fb,
+      sosmed_twitter: data.sosmed_twitter,
+      sosmed_yt: data.sosmed_yt,
+    });
 
     await db.query(
       `
-      INSERT INTO informasi_beranda
-      (
-        id, nama_instansi, logo_url, kontak_telepon, kontak_email, alamat,
-        banner_badge, banner_judul, banner_highlight, banner_subjudul, banner_gambar,
-        footer_deskripsi, prosedur_judul, prosedur_isi
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-        nama_instansi = VALUES(nama_instansi),
-        logo_url = VALUES(logo_url),
-        kontak_telepon = VALUES(kontak_telepon),
-        kontak_email = VALUES(kontak_email),
-        alamat = VALUES(alamat),
-        banner_badge = VALUES(banner_badge),
-        banner_judul = VALUES(banner_judul),
-        banner_highlight = VALUES(banner_highlight),
-        banner_subjudul = VALUES(banner_subjudul),
-        banner_gambar = VALUES(banner_gambar),
-        footer_deskripsi = VALUES(footer_deskripsi),
-        prosedur_judul = VALUES(prosedur_judul),
-        prosedur_isi = VALUES(prosedur_isi)
-    `,
+       INSERT INTO informasi_beranda
+    (
+      id, nama_instansi, logo_url, kontak_telepon, kontak_email, 
+      sosmed_ig, sosmed_fb, sosmed_twitter, sosmed_yt,
+      alamat, banner_badge, banner_judul, banner_highlight, banner_subjudul, banner_gambar,
+      footer_deskripsi, prosedur_judul, prosedur_isi
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      nama_instansi = VALUES(nama_instansi),
+      logo_url = VALUES(logo_url),
+      kontak_telepon = VALUES(kontak_telepon),
+      kontak_email = VALUES(kontak_email),
+      sosmed_ig = VALUES(sosmed_ig),
+      sosmed_fb = VALUES(sosmed_fb),
+      sosmed_twitter = VALUES(sosmed_twitter),
+      sosmed_yt = VALUES(sosmed_yt),
+      alamat = VALUES(alamat),
+      banner_badge = VALUES(banner_badge),
+      banner_judul = VALUES(banner_judul),
+      banner_highlight = VALUES(banner_highlight),
+      banner_subjudul = VALUES(banner_subjudul),
+      banner_gambar = VALUES(banner_gambar),
+      footer_deskripsi = VALUES(footer_deskripsi),
+      prosedur_judul = VALUES(prosedur_judul),
+      prosedur_isi = VALUES(prosedur_isi)
+  `,
       [
         1,
         data.nama_instansi || "",
         data.logo_url || "",
         data.kontak_telepon || "",
         data.kontak_email || "",
+        data.sosmed_ig || "", // ✅ TAMBAHKAN
+        data.sosmed_fb || "", // ✅ TAMBAHKAN
+        data.sosmed_twitter || "", // ✅ TAMBAHKAN
+        data.sosmed_yt || "", // ✅ TAMBAHKAN
         data.alamat || "",
         data.banner_badge || "",
         data.banner_judul || "",
