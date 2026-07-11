@@ -355,7 +355,7 @@ function FooterBawah() {
       <div className="mx-auto max-w-5xl px-6 grid gap-8 sm:grid-cols-3">
         <div>
           <img
-            src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_Kemenag_new.png"
+            src="https://man2plg.sch.id/Foto/logo.png"
             alt="Logo Kemenag"
             className="h-12 w-12 object-contain mb-4 drop-shadow-md"
           />
