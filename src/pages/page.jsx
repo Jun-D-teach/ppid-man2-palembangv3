@@ -99,16 +99,22 @@ export default function Page() {
   };
 
   const filteredDokumen = useMemo(() => {
-    const namaKategori = namaKategoriMap[slug?.toLowerCase()] || "";
-    return informasiPublik
-      .filter((item) => item.kategori === namaKategori)
-      .filter((item) => item.status_publish !== "Sembunyi")
-      .filter((item) =>
-        `${item.judul || ""} ${item.deskripsi || ""} ${item.tahun || ""}`
-          .toLowerCase()
-          .includes(searchDokumen.toLowerCase())
-      );
-  }, [informasiPublik, slug, searchDokumen]);
+  const namaKategori = namaKategoriMap[slug?.toLowerCase()] || "";
+  return informasiPublik
+    .filter((item) => item.kategori === namaKategori)
+    .filter((item) => item.status_publish !== "Sembunyi")
+    .filter((item) =>
+      `${item.judul || ""} ${item.deskripsi || ""} ${item.tahun || ""}`
+        .toLowerCase()
+        .includes(searchDokumen.toLowerCase())
+    )
+    .sort((a, b) => {
+      // ✅ URUTKAN BERDASARKAN POSISI
+      const posA = Number(a.posisi || a.position || 999);
+      const posB = Number(b.posisi || b.position || 999);
+      return posA - posB;
+    });
+}, [informasiPublik, slug, searchDokumen]);
 
   // Fungsi cerdas pengolah konten teks & tautan inline bawaan asli
   const renderCleanContent = (text) => {
