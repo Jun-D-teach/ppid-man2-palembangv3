@@ -24,6 +24,7 @@ const initialKonten = {
   sosmed_fb: "",
   sosmed_twitter: "",
   sosmed_yt: "",
+  sosmed_tiktok:"",
   alamat: "Jl. Prof. KH. Zainal Abidin, Kec. Kemuning, Palembang",
   banner_badge: "Portal Layanan Informasi",
   banner_judul: "Keterbukaan Informasi",
@@ -1062,6 +1063,26 @@ const handleDeleteExistingFile = async (fileId) => {
                       />
                     </div>
                   </label>
+                  {/* ... (IG, FB, Twitter, YouTube sudah ada) ... */}
+
+{/* ✅ TAMBAHKAN BLOK TIKTOK INI */}
+<label>
+  <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
+    TikTok URL
+  </span>
+  <div className="relative">
+    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 font-bold">
+      TT
+    </span>
+    <input
+      type="text"
+      value={konten.sosmed_tiktok || ""}
+      onChange={(e) => updateKonten("sosmed_tiktok", e.target.value)}
+      placeholder="https://tiktok.com/@username"
+      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+    />
+  </div>
+</label>
                 </div>
               </div>
                                 <button
