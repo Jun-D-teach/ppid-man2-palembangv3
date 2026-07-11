@@ -376,7 +376,7 @@ function FooterBawah() {
             <br />
             📧 {konten.kontak_email || "ppid@man2plg.sch.id"}
             <br />
-            📞 {konten.kontak_telepon || "(0711) 123456"}
+            📞 {konten.kontak_telepon || "0821 8697 2771"}
           </p>
         </div>
 
