@@ -114,8 +114,8 @@ const Home = () => {
       return;
     }
     try {
-      setCekStatusLoading(true);
-      setCekStatusError("");
+      cekStatusLoading(true);
+      cekStatusError("");
       const res = await api.get(`/api/cek-status?q=${encodeURIComponent(cekStatusQuery)}`);
       setCekStatusResults(res.data || []);
     } catch (err) {
@@ -190,14 +190,22 @@ const Home = () => {
     if (page?.slug) navigate(`/page/${page.slug}`);
   };
 
-  const filteredDokumen = informasiPublik
+ const filteredDokumen = useMemo(() => {
+  return informasiPublik
     .filter((item) => item.kategori === activeTab)
     .filter((item) => item.status_publish !== "Sembunyi")
     .filter((item) =>
       `${item.judul || ""} ${item.deskripsi || ""} ${item.tahun || ""}`
         .toLowerCase()
         .includes(searchDokumen.toLowerCase())
-    );
+    )
+    .sort((a, b) => {
+      // ✅ URUTKAN BERDASARKAN POSISI
+      const posA = Number(a.posisi || a.position || 999);
+      const posB = Number(b.posisi || b.position || 999);
+      return posA - posB;
+    });
+}, [informasiPublik, activeTab, searchDokumen]);
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-800 antialiased">
