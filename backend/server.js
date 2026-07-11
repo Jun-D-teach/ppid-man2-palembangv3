@@ -473,59 +473,6 @@ app.get(
   }),
 );
 
-app.post(
-  "/api/admin/informasi-publik",
-  requireAdmin,
-  upload.array("berkas"),
-  asyncHandler(async (req, res) => {
-    const { kategori, judul, deskripsi, tahun, status_publish } = req.body;
-
-    if (!kategori || !judul) {
-      return res
-        .status(400)
-        .json({ message: "Kategori dan judul wajib diisi" });
-    }
-
-    const [result] = await db.query(
-      `
-      INSERT INTO informasi_publik
-      (kategori, judul, deskripsi, tahun, status_publish)
-      VALUES (?, ?, ?, ?, ?)
-    `,
-      [
-        kategori,
-        judul,
-        deskripsi || "",
-        tahun || "",
-        status_publish || "Tampil",
-      ],
-    );
-
-    const informasiId = result.insertId;
-
-    if (req.files?.length) {
-      for (const file of req.files) {
-        await db.query(
-          `
-          INSERT INTO informasi_publik_berkas
-          (informasi_id, nama_file, nama_asli, mime_type, ukuran)
-          VALUES (?, ?, ?, ?, ?)
-        `,
-          [
-            informasiId,
-            file.filename,
-            file.originalname,
-            file.mimetype,
-            file.size,
-          ],
-        );
-      }
-    }
-
-    res.status(201).json({ message: "Informasi publik berhasil ditambahkan" });
-  }),
-);
-
 app.put("/api/content-blocks/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -574,19 +521,129 @@ app.delete("/api/content-blocks/:id", async (req, res) => {
     });
   }
 });
+/* =========================
+INFORMASI PUBLIK - GET (Public)
+========================= */
+app.get(
+  "/api/informasi-publik",
+  asyncHandler(async (req, res) => {
+    const [informasi] = await db.query(
+      "SELECT * FROM informasi_publik ORDER BY posisi ASC, created_at DESC",
+    );
+    const [berkas] = await db.query(
+      "SELECT * FROM informasi_publik_berkas ORDER BY id ASC",
+    );
 
+    const result = informasi.map((item) => ({
+      ...item,
+      posisi: Number(item.posisi || 1), // ✅ Pastikan posisi berupa angka
+      berkas_list: berkas
+        .filter((file) => Number(file.informasi_id) === Number(item.id))
+        .map((file) => ({
+          id: file.id,
+          nama_file: file.nama_file,
+          nama_asli: file.nama_asli,
+          mime_type: file.mime_type,
+          ukuran: file.ukuran,
+        })),
+    }));
+
+    res.json(result);
+  }),
+);
+
+/* =========================
+INFORMASI PUBLIK - POST (Admin Tambah)
+========================= */
+app.post(
+  "/api/admin/informasi-publik",
+  requireAdmin,
+  upload.array("berkas"),
+  asyncHandler(async (req, res) => {
+    const { kategori, judul, deskripsi, tahun, posisi, status_publish } =
+      req.body;
+
+    // 🔍 DEBUG: Log data yang diterima
+    console.log("📥 POST /api/admin/informasi-publik:", {
+      kategori,
+      judul,
+      tahun,
+      posisi: posisi || 1,
+      status_publish,
+    });
+
+    if (!kategori || !judul) {
+      return res
+        .status(400)
+        .json({ message: "Kategori dan judul wajib diisi" });
+    }
+
+    const [result] = await db.query(
+      `
+      INSERT INTO informasi_publik
+      (kategori, judul, deskripsi, tahun, posisi, status_publish)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `,
+      [
+        kategori,
+        judul,
+        deskripsi || "",
+        tahun || "",
+        Number(posisi || 1), // ✅ PASTIKAN ANGKA
+        status_publish || "Tampil",
+      ],
+    );
+
+    const informasiId = result.insertId;
+
+    if (req.files?.length) {
+      for (const file of req.files) {
+        await db.query(
+          `
+          INSERT INTO informasi_publik_berkas
+          (informasi_id, nama_file, nama_asli, mime_type, ukuran)
+          VALUES (?, ?, ?, ?, ?)
+        `,
+          [
+            informasiId,
+            file.filename,
+            file.originalname,
+            file.mimetype,
+            file.size,
+          ],
+        );
+      }
+    }
+
+    res.status(201).json({ message: "Informasi publik berhasil ditambahkan" });
+  }),
+);
+
+/* =========================
+INFORMASI PUBLIK - PUT (Admin Edit)
+========================= */
 app.put(
   "/api/admin/informasi-publik/:id",
   requireAdmin,
   upload.array("berkas"),
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { kategori, judul, deskripsi, tahun, status_publish } = req.body;
+    const { kategori, judul, deskripsi, tahun, posisi, status_publish } =
+      req.body;
+
+    // 🔍 DEBUG
+    console.log("📥 PUT /api/admin/informasi-publik/" + id, {
+      kategori,
+      judul,
+      tahun,
+      posisi: posisi || 1,
+      status_publish,
+    });
 
     await db.query(
       `
       UPDATE informasi_publik
-      SET kategori = ?, judul = ?, deskripsi = ?, tahun = ?, status_publish = ?
+      SET kategori = ?, judul = ?, deskripsi = ?, tahun = ?, posisi = ?, status_publish = ?
       WHERE id = ?
     `,
       [
@@ -594,6 +651,7 @@ app.put(
         judul,
         deskripsi || "",
         tahun || "",
+        Number(posisi || 1), // ✅ PASTIKAN ANGKA
         status_publish || "Tampil",
         id,
       ],
@@ -616,12 +674,14 @@ app.put(
   }),
 );
 
+/* =========================
+INFORMASI PUBLIK - DELETE (Admin Hapus)
+========================= */
 app.delete(
   "/api/admin/informasi-publik/:id",
   requireAdmin,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-
     const [files] = await db.query(
       "SELECT nama_file FROM informasi_publik_berkas WHERE informasi_id = ?",
       [id],
@@ -633,33 +693,31 @@ app.delete(
     res.json({ message: "Informasi publik berhasil dihapus" });
   }),
 );
+
+/* =========================
+HAPUS BERKAS INFORMASI PUBLIK
+========================= */
 app.delete(
   "/api/admin/informasi-publik/:id/files/:fileId",
   requireAdmin,
   asyncHandler(async (req, res) => {
     const { id, fileId } = req.params;
-
     const [rows] = await db.query(
       "SELECT nama_file FROM informasi_publik_berkas WHERE id = ? AND informasi_id = ? LIMIT 1",
       [fileId, id],
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({
-        message: "Berkas tidak ditemukan",
-      });
+      return res.status(404).json({ message: "Berkas tidak ditemukan" });
     }
 
     deleteUploadedFile(rows[0].nama_file);
-
     await db.query(
       "DELETE FROM informasi_publik_berkas WHERE id = ? AND informasi_id = ?",
       [fileId, id],
     );
 
-    res.json({
-      message: "Berkas berhasil dihapus",
-    });
+    res.json({ message: "Berkas berhasil dihapus" });
   }),
 );
 /* =========================
@@ -1435,124 +1493,6 @@ app.get(
     );
 
     res.json(await attachMenuPageFiles(pages));
-  }),
-);
-
-app.post(
-  "/api/admin/menu-pages",
-  requireAdmin,
-  upload.array("berkas"),
-  asyncHandler(async (req, res) => {
-    const {
-      parent_menu,
-      menu_label,
-      slug,
-      judul,
-      isi,
-      status_publish,
-      position,
-    } = req.body;
-
-    if (!parent_menu || !menu_label || !judul) {
-      return res.status(400).json({
-        message: "Menu utama, nama submenu, dan judul halaman wajib diisi",
-      });
-    }
-
-    const finalSlug = slugify(slug || menu_label || judul);
-    if (!finalSlug) {
-      return res.status(400).json({ message: "Slug/link menu tidak valid" });
-    }
-
-    const [result] = await db.query(
-      `INSERT INTO menu_pages
-      (parent_menu, menu_label, slug, judul, isi, status_publish, position, is_builtin)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 0)
-    `,
-      [
-        String(parent_menu).toUpperCase(),
-        menu_label,
-        finalSlug,
-        judul,
-        isi || "",
-        status_publish || "Tampil",
-        Number(position || 1),
-      ],
-    );
-
-    const pageId = result.insertId;
-
-    if (req.files?.length) {
-      for (const file of req.files) {
-        await db.query(
-          `INSERT INTO menu_page_files
-          (page_id, nama_file, nama_asli, mime_type, ukuran)
-          VALUES (?, ?, ?, ?, ?)`,
-          [pageId, file.filename, file.originalname, file.mimetype, file.size],
-        );
-      }
-    }
-
-    res
-      .status(201)
-      .json({ message: "Halaman menu berhasil ditambahkan", id: pageId });
-  }),
-);
-
-app.put(
-  "/api/admin/menu-pages/:id",
-  requireAdmin,
-  upload.array("berkas"),
-  asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const {
-      parent_menu,
-      menu_label,
-      slug,
-      judul,
-      isi,
-      status_publish,
-      position,
-    } = req.body;
-
-    if (!parent_menu || !menu_label || !judul) {
-      return res.status(400).json({
-        message: "Menu utama, nama submenu, dan judul halaman wajib diisi",
-      });
-    }
-
-    const finalSlug = slugify(slug || menu_label || judul);
-
-    await db.query(
-      `UPDATE menu_pages
-    SET parent_menu = ?, menu_label = ?, slug = ?, judul = ?, isi = ?, status_publish = ?, position = ?
-    WHERE id = ?`,
-      [
-        String(parent_menu).toUpperCase(),
-        menu_label,
-        finalSlug,
-        judul,
-        isi || "",
-        status_publish || "Tampil",
-        Number(position || 1),
-        id,
-      ],
-    );
-
-    if (req.files?.length) {
-      for (const file of req.files) {
-        await db.query(
-          `
-          INSERT INTO menu_page_files
-          (page_id, nama_file, nama_asli, mime_type, ukuran)
-          VALUES (?, ?, ?, ?, ?)
-        `,
-          [id, file.filename, file.originalname, file.mimetype, file.size],
-        );
-      }
-    }
-
-    res.json({ message: "Halaman menu berhasil diperbarui" });
   }),
 );
 
