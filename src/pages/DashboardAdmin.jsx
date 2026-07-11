@@ -24,25 +24,29 @@ const initialKonten = {
   sosmed_fb: "",
   sosmed_twitter: "",
   sosmed_yt: "",
-  sosmed_tiktok:"",
+  sosmed_tiktok: "",
   alamat: "Jl. Prof. KH. Zainal Abidin, Kec. Kemuning, Palembang",
   banner_badge: "Portal Layanan Informasi",
   banner_judul: "Keterbukaan Informasi",
   banner_highlight: "Adalah Hak Anda.",
   banner_subjudul:
     "Pejabat Pengelola Informasi dan Dokumentasi (PPID) MAN 2 Palembang memberikan pelayanan informasi yang transparan dan akuntabel bagi seluruh masyarakat.",
-  banner_gambar: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80",
-  footer_deskripsi: "Mewujudkan keterbukaan informasi madrasah yang modern dan transparan.",
+  banner_gambar:
+    "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80",
+  footer_deskripsi:
+    "Mewujudkan keterbukaan informasi madrasah yang modern dan transparan.",
   prosedur_judul: "",
-prosedur_isi: "",
+  prosedur_isi: "",
 };
 
+// ✅ TAMBAHKAN FIELD POSISI DI SINI
 const initialInfoForm = {
   id: null,
   kategori: "Informasi Berkala",
   judul: "",
   deskripsi: "",
   tahun: new Date().getFullYear().toString(),
+  posisi: 1, // ✅ FIELD BARU
   status_publish: "Tampil",
   files: [],
   existingFiles: [],
@@ -77,31 +81,24 @@ const normalizeStatus = (status) => {
 
 const isPreviewableImage = (fileName = "") => /\.(png|jpe?g|webp|gif|bmp)$/i.test(fileName);
 const isPreviewablePdf = (fileName = "") => /\.pdf$/i.test(fileName);
-
 const getInfoTitle = (item) => item?.judul || item?.nama_dokumen || item?.nama || item?.title || "Tanpa judul";
 const getInfoCategory = (item) => item?.kategori || item?.jenis_informasi || item?.tipe || "Informasi Berkala";
 const getInfoDescription = (item) => item?.deskripsi || item?.keterangan || item?.ringkasan || "";
-
 const getInfoFiles = (item) => {
   if (!item) return [];
-
   const raw = item.berkas_list || item.files || item.berkas || item.file || item.lampiran || item.dokumen || item.nama_file;
-
   if (!raw) return [];
-
   if (Array.isArray(raw)) {
     return raw
       .map((file) => {
         if (!file) return null;
         if (typeof file === "string") return { name: file, fileName: file, url: getFileUrl(file) };
-
         const fileName = file.nama_file || file.filename || file.originalname || file.name || file.berkas || file.file;
         const url = file.url || getFileUrl(fileName);
         return { ...file, name: file.nama_asli || file.originalname || fileName, fileName, url };
       })
       .filter(Boolean);
   }
-
   if (typeof raw === "string") {
     try {
       const parsed = JSON.parse(raw);
@@ -110,7 +107,6 @@ const getInfoFiles = (item) => {
       return raw ? [{ name: raw, fileName: raw, url: getFileUrl(raw) }] : [];
     }
   }
-
   return [];
 };
 
@@ -130,7 +126,6 @@ const StatCard = ({ label, value, helper, icon }) => (
 const StatusBadge = ({ status }) => {
   const normalizedStatus = normalizeStatus(status);
   const className = statusStyle[normalizedStatus] || statusStyle.default;
-
   return (
     <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide ${className}`}>
       <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current" />
@@ -150,7 +145,6 @@ const FilePreviewButton = ({ fileName, label, onPreview, emptyText = "Tidak ada 
   if (!fileName) {
     return <p className="text-xs font-bold uppercase text-slate-400">{emptyText}</p>;
   }
-
   return (
     <div className="space-y-2 text-center">
       <button
@@ -167,7 +161,6 @@ const FilePreviewButton = ({ fileName, label, onPreview, emptyText = "Tidak ada 
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
-
   const [permohonan, setPermohonan] = useState([]);
   const [selectedData, setSelectedData] = useState(null);
   const [processData, setProcessData] = useState(null);
@@ -232,7 +225,6 @@ const DashboardAdmin = () => {
     let user = null;
     const rawUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
-
     if (rawUser && rawUser !== "undefined" && token && token !== "undefined" && token !== "null") {
       try {
         user = JSON.parse(rawUser);
@@ -240,12 +232,10 @@ const DashboardAdmin = () => {
         console.error("Gagal parse admin user data:", e);
       }
     }
-
     if (!user || user.role !== "admin" || !token || token === "undefined" || token === "null") {
       navigate("/login");
       return;
     }
-
     fetchData();
     fetchBeranda();
     fetchInformasiPublik();
@@ -256,7 +246,6 @@ const DashboardAdmin = () => {
     const pending = permohonan.filter((item) => normalizeStatus(item.status) === "Pending").length;
     const diproses = permohonan.filter((item) => normalizeStatus(item.status) === "Diproses").length;
     const selesai = permohonan.filter((item) => normalizeStatus(item.status) === "Selesai").length;
-
     return { total, pending, diproses, selesai };
   }, [permohonan]);
 
@@ -269,7 +258,6 @@ const DashboardAdmin = () => {
 
   const filteredPermohonan = useMemo(() => {
     const keyword = query.trim().toLowerCase();
-
     return permohonan.filter((item) => {
       const itemStatus = normalizeStatus(item.status);
       const cocokStatus = statusFilter === "Semua" || itemStatus === statusFilter;
@@ -289,24 +277,30 @@ const DashboardAdmin = () => {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-
       const cocokKeyword = !keyword || searchableText.includes(keyword);
       return cocokStatus && cocokKeyword;
     });
   }, [permohonan, query, statusFilter]);
 
+  // ✅ URUTKAN BERDASARKAN POSISI
   const filteredInformasi = useMemo(() => {
     const keyword = infoSearch.trim().toLowerCase();
-
-    return informasiPublik.filter((item) => {
-      const cocokKategori = getInfoCategory(item) === kategoriAktif;
-      const files = getInfoFiles(item).map((file) => file.name || file.fileName).join(" ");
-      const text = [getInfoTitle(item), getInfoDescription(item), item.tahun, item.status_publish, files]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return cocokKategori && (!keyword || text.includes(keyword));
-    });
+    return informasiPublik
+      .filter((item) => {
+        const cocokKategori = getInfoCategory(item) === kategoriAktif;
+        const files = getInfoFiles(item).map((file) => file.name || file.fileName).join(" ");
+        const text = [getInfoTitle(item), getInfoDescription(item), item.tahun, item.status_publish, files]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return cocokKategori && (!keyword || text.includes(keyword));
+      })
+      .sort((a, b) => {
+        // ✅ Urutkan berdasarkan posisi
+        const posA = Number(a.posisi || a.position || 999);
+        const posB = Number(b.posisi || b.position || 999);
+        return posA - posB;
+      });
   }, [informasiPublik, kategoriAktif, infoSearch]);
 
   const openDetail = (data, editMode = false) => {
@@ -340,7 +334,7 @@ const DashboardAdmin = () => {
   };
 
   const openCreateInfo = () => {
-    setInfoForm({ ...initialInfoForm, kategori: kategoriAktif, tahun: new Date().getFullYear().toString() });
+    setInfoForm({ ...initialInfoForm, kategori: kategoriAktif, tahun: new Date().getFullYear().toString(), posisi: 1 });
     setShowInfoForm(true);
   };
 
@@ -351,24 +345,23 @@ const DashboardAdmin = () => {
       judul: getInfoTitle(item),
       deskripsi: getInfoDescription(item),
       tahun: item.tahun || "",
+      posisi: item.posisi || item.position || 1, // ✅ Ambil posisi dari data
       status_publish: item.status_publish || item.status || "Tampil",
       files: [],
-       existingFiles: item.berkas_list || []
+      existingFiles: item.berkas_list || [],
     });
     setShowInfoForm(true);
   };
-const handleDeleteExistingFile = async (fileId) => {
+
+  const handleDeleteExistingFile = async (fileId) => {
     if (!window.confirm("Hapus berkas ini?")) return;
-
-    await api.delete(
-        `/api/admin/informasi-publik/${infoForm.id}/files/${fileId}`
-    );
-
-    setInfoForm(prev => ({
-        ...prev,
-        existingFiles: prev.existingFiles.filter(f => f.id !== fileId)
+    await api.delete(`/api/admin/informasi-publik/${infoForm.id}/files/${fileId}`);
+    setInfoForm((prev) => ({
+      ...prev,
+      existingFiles: prev.existingFiles.filter((f) => f.id !== fileId),
     }));
-};
+  };
+
   const closeInfoForm = () => {
     setInfoForm({ ...initialInfoForm, kategori: kategoriAktif });
     setShowInfoForm(false);
@@ -388,12 +381,12 @@ const handleDeleteExistingFile = async (fileId) => {
     }
   };
 
+  // ✅ KIRIM POSISI KE BACKEND
   const handleSaveInformasi = async () => {
     if (!infoForm.judul.trim()) {
       alert("Nama/Judul dokumen wajib diisi.");
       return;
     }
-
     try {
       setSavingInfo(true);
       const formData = new FormData();
@@ -401,6 +394,7 @@ const handleDeleteExistingFile = async (fileId) => {
       formData.append("judul", infoForm.judul);
       formData.append("deskripsi", infoForm.deskripsi);
       formData.append("tahun", infoForm.tahun);
+      formData.append("posisi", infoForm.posisi || 1); // ✅ KIRIM POSISI
       formData.append("status_publish", infoForm.status_publish);
 
       Array.from(infoForm.files || []).forEach((file) => {
@@ -431,7 +425,6 @@ const handleDeleteExistingFile = async (fileId) => {
 
   const handleDeleteInformasi = async (id) => {
     if (!window.confirm("Hapus data informasi publik ini beserta berkasnya?")) return;
-
     try {
       await api.delete(`/api/admin/informasi-publik/${id}`);
       alert("Informasi publik berhasil dihapus.");
@@ -447,7 +440,6 @@ const handleDeleteExistingFile = async (fileId) => {
       alert("Estimasi waktu wajib diisi. Contoh: 3 Hari Kerja atau 20 Mei 2026.");
       return;
     }
-
     try {
       setProcessing(true);
       await api.put(`/api/permohonan/${id}`, {
@@ -472,39 +464,10 @@ const handleDeleteExistingFile = async (fileId) => {
       alert("Isi pesan jawaban atau pilih berkas balasan terlebih dahulu.");
       return;
     }
-{infoForm.existingFiles?.length > 0 && (
-    <div className="mb-4">
-        <label className="block font-semibold mb-2">
-            Berkas yang sudah ada
-        </label>
-
-        <div className="space-y-2">
-            {infoForm.existingFiles.map(file => (
-                <div
-                    key={file.id}
-                    className="flex items-center justify-between border rounded p-2"
-                >
-                    <span className="text-sm">
-                        📄 {file.nama_asli}
-                    </span>
-
-                    <button
-                        type="button"
-                        onClick={() => handleDeleteExistingFile(file.id)}
-                        className="text-red-600 hover:text-red-800"
-                    >
-                        Hapus
-                    </button>
-                </div>
-            ))}
-        </div>
-    </div>
-)}
     setUploading(true);
     const formData = new FormData();
     formData.append("pesan_admin", pesanAdmin);
     if (tempFile) formData.append("berkas", tempFile);
-
     try {
       await api.put(`/api/permohonan/upload/${id}`, formData);
       alert("Jawaban berhasil dikirim!");
@@ -520,7 +483,6 @@ const handleDeleteExistingFile = async (fileId) => {
 
   const handleHapusJawaban = async (id) => {
     if (!window.confirm("Hapus jawaban dan berkas balasan admin? Status permohonan akan kembali ke Diproses dan tombol Tanggapi akan aktif lagi.")) return;
-
     try {
       const formData = new FormData();
       formData.append("hapus_berkas", "true");
@@ -540,7 +502,6 @@ const handleDeleteExistingFile = async (fileId) => {
 
   const renderPreviewContent = () => {
     if (!previewFile) return null;
-
     const { fileName, url } = previewFile;
     const extension = getFileExtension(fileName);
 
@@ -579,7 +540,6 @@ const handleDeleteExistingFile = async (fileId) => {
 
   const renderActionButton = (item) => {
     const status = normalizeStatus(item.status);
-
     if (status === "Pending") {
       return (
         <button
@@ -590,7 +550,6 @@ const handleDeleteExistingFile = async (fileId) => {
         </button>
       );
     }
-
     if (status === "Diproses") {
       return (
         <button
@@ -601,7 +560,6 @@ const handleDeleteExistingFile = async (fileId) => {
         </button>
       );
     }
-
     if (status === "Selesai") {
       return (
         <button
@@ -613,7 +571,6 @@ const handleDeleteExistingFile = async (fileId) => {
         </button>
       );
     }
-
     return (
       <button
         onClick={() => openProcessModal(item)}
@@ -638,7 +595,6 @@ const handleDeleteExistingFile = async (fileId) => {
                 Kelola permohonan informasi dan semua konten yang tampil di halaman depan.
               </p>
             </div>
-
             <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
               <button
                 onClick={() => setView("permohonan")}
@@ -689,7 +645,6 @@ const handleDeleteExistingFile = async (fileId) => {
                   <h2 className="text-lg font-black text-slate-900">Daftar Permohonan</h2>
                   <p className="text-sm text-slate-500">Pending diproses dulu dengan estimasi/catatan, baru bisa ditanggapi oleh admin.</p>
                 </div>
-
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
@@ -701,7 +656,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm font-medium outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 sm:w-72"
                     />
                   </div>
-
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -712,7 +666,6 @@ const handleDeleteExistingFile = async (fileId) => {
                     <option value="Diproses">Diproses</option>
                     <option value="Selesai">Selesai</option>
                   </select>
-
                   <button
                     onClick={fetchData}
                     className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-600 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
@@ -759,7 +712,6 @@ const handleDeleteExistingFile = async (fileId) => {
                               <p className="mt-1 text-xs text-slate-400">{item.no_hp || "-"}</p>
                             </button>
                           </td>
-
                           <td className="px-6 py-5 align-top">
                             <button onClick={() => openDetail(item, false)} className="max-w-md text-left">
                               <p className="line-clamp-1 text-sm font-black text-emerald-700 underline-offset-4 group-hover:underline">
@@ -768,7 +720,6 @@ const handleDeleteExistingFile = async (fileId) => {
                               <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{item.tujuan_informasi || "Tidak ada tujuan informasi"}</p>
                             </button>
                           </td>
-
                           <td className="px-6 py-5 align-top">
                             {item.estimasi ? (
                               <div>
@@ -781,7 +732,6 @@ const handleDeleteExistingFile = async (fileId) => {
                               <p className="text-xs font-semibold text-slate-300">Belum diisi</p>
                             )}
                           </td>
-
                           <td className="px-6 py-5 align-top">
                             {item.berkas_balasan ? (
                               <button onClick={() => openPreview(item.berkas_balasan, "Berkas Balasan Admin")} className="max-w-[210px] text-left">
@@ -792,11 +742,9 @@ const handleDeleteExistingFile = async (fileId) => {
                               <p className="text-xs font-semibold text-slate-300">Belum ada berkas</p>
                             )}
                           </td>
-
                           <td className="px-6 py-5 text-center align-top">
                             <StatusBadge status={item.status} />
                           </td>
-
                           <td className="px-6 py-5 text-right align-top">
                             <div className="flex justify-end gap-2">
                               <button
@@ -830,17 +778,20 @@ const handleDeleteExistingFile = async (fileId) => {
                     Admin dapat mengatur hero/banner, identitas kontak, dan daftar informasi publik yang tampil di halaman depan.
                   </p>
                 </div>
-
                 <div className="flex gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
                   <button
                     onClick={() => setCmsTab("hero")}
-                    className={`rounded-xl px-4 py-2.5 text-xs font-black uppercase transition ${cmsTab === "hero" ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-white"}`}
+                    className={`rounded-xl px-4 py-2.5 text-xs font-black uppercase transition ${
+                      cmsTab === "hero" ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-white"
+                    }`}
                   >
                     Hero & Identitas
                   </button>
                   <button
                     onClick={() => setCmsTab("informasi")}
-                    className={`rounded-xl px-4 py-2.5 text-xs font-black uppercase transition ${cmsTab === "informasi" ? "bg-emerald-700 text-white" : "text-slate-500 hover:bg-white"}`}
+                    className={`rounded-xl px-4 py-2.5 text-xs font-black uppercase transition ${
+                      cmsTab === "informasi" ? "bg-emerald-700 text-white" : "text-slate-500 hover:bg-white"
+                    }`}
                   >
                     Informasi Publik
                   </button>
@@ -858,7 +809,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label>
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">URL Logo</span>
                     <input
@@ -868,7 +818,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label>
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Telepon</span>
                     <input
@@ -878,7 +827,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label>
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Email</span>
                     <input
@@ -888,7 +836,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label className="md:col-span-2">
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Alamat</span>
                     <input
@@ -898,7 +845,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label>
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Badge Hero</span>
                     <input
@@ -908,7 +854,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label>
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">URL Gambar Hero</span>
                     <input
@@ -918,7 +863,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label>
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Judul Hero</span>
                     <input
@@ -928,7 +872,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label>
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Teks Highlight Hero</span>
                     <input
@@ -938,7 +881,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label className="md:col-span-2">
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Deskripsi Hero</span>
                     <textarea
@@ -948,7 +890,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-
                   <label className="md:col-span-2">
                     <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Deskripsi Footer</span>
                     <textarea
@@ -958,142 +899,112 @@ const handleDeleteExistingFile = async (fileId) => {
                       className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
-              <label className="md:col-span-2">
-                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
-                  Judul Prosedur Layanan
-                </span>
-
-                <input
-                  type="text"
-                  value={konten.prosedur_judul || ""}
-                  onChange={(e) =>
-                    setKonten({
-                      ...konten,
-                      prosedur_judul: e.target.value,
-                    })
-                  }
-                  placeholder="Contoh: Prosedur Permohonan Informasi"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                />
-              </label>
-
-              <label className="md:col-span-2">
-                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
-                  Isi Prosedur Layanan
-                </span>
-
-                <textarea
-                  rows="8"
-                  value={konten.prosedur_isi || ""}
-                  onChange={(e) =>
-                    setKonten({
-                      ...konten,
-                      prosedur_isi: e.target.value,
-                    })
-                  }
-                  placeholder={`Contoh:
-              1. Pemohon melakukan login.
-              2. Mengisi formulir permohonan informasi.
-              3. Admin memproses permohonan.
-              4. Admin memberikan jawaban atau dokumen.
-              5. Pemohon dapat mengunduh hasil layanan.`}
-                  className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                />
-              </label>
-                              <div className="md:col-span-2 mt-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-px flex-1 bg-slate-200"></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Link Media Sosial</span>
-                  <div className="h-px flex-1 bg-slate-200"></div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label>
-                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Instagram URL</span>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-600 font-bold">IG</span>
-                      <input
-                        type="text"
-                        value={konten.sosmed_ig || ""}
-                        onChange={(e) => updateKonten("sosmed_ig", e.target.value)}
-                        placeholder="https://instagram.com/..."
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
-                      />
-                    </div>
+                  <label className="md:col-span-2">
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Judul Prosedur Layanan</span>
+                    <input
+                      type="text"
+                      value={konten.prosedur_judul || ""}
+                      onChange={(e) => setKonten({ ...konten, prosedur_judul: e.target.value })}
+                      placeholder="Contoh: Prosedur Permohonan Informasi"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                    />
                   </label>
-
-                  <label>
-                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Facebook URL</span>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 font-bold">FB</span>
-                      <input
-                        type="text"
-                        value={konten.sosmed_fb || ""}
-                        onChange={(e) => updateKonten("sosmed_fb", e.target.value)}
-                        placeholder="https://facebook.com/..."
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
-                      />
-                    </div>
+                  <label className="md:col-span-2">
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Isi Prosedur Layanan</span>
+                    <textarea
+                      rows="8"
+                      value={konten.prosedur_isi || ""}
+                      onChange={(e) => setKonten({ ...konten, prosedur_isi: e.target.value })}
+                      placeholder={`Contoh:
+1. Pemohon melakukan login.
+2. Mengisi formulir permohonan informasi.
+3. Admin memproses permohonan.
+4. Admin memberikan jawaban atau dokumen.
+5. Pemohon dapat mengunduh hasil layanan.`}
+                      className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                    />
                   </label>
-
-                  <label>
-                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">X / Twitter URL</span>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 font-bold">X</span>
-                      <input
-                        type="text"
-                        value={konten.sosmed_twitter || ""}
-                        onChange={(e) => updateKonten("sosmed_twitter", e.target.value)}
-                        placeholder="https://x.com/..."
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
-                      />
+                  <div className="md:col-span-2 mt-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="h-px flex-1 bg-slate-200"></div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Link Media Sosial</span>
+                      <div className="h-px flex-1 bg-slate-200"></div>
                     </div>
-                  </label>
-
-                  <label>
-                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">YouTube URL</span>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-red-600 font-bold">YT</span>
-                      <input
-                        type="text"
-                        value={konten.sosmed_yt || ""}
-                        onChange={(e) => updateKonten("sosmed_yt", e.target.value)}
-                        placeholder="https://youtube.com/..."
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <label>
+                        <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Instagram URL</span>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-600 font-bold">IG</span>
+                          <input
+                            type="text"
+                            value={konten.sosmed_ig || ""}
+                            onChange={(e) => updateKonten("sosmed_ig", e.target.value)}
+                            placeholder="https://instagram.com/..."
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                          />
+                        </div>
+                      </label>
+                      <label>
+                        <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Facebook URL</span>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 font-bold">FB</span>
+                          <input
+                            type="text"
+                            value={konten.sosmed_fb || ""}
+                            onChange={(e) => updateKonten("sosmed_fb", e.target.value)}
+                            placeholder="https://facebook.com/..."
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                          />
+                        </div>
+                      </label>
+                      <label>
+                        <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">X / Twitter URL</span>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 font-bold">X</span>
+                          <input
+                            type="text"
+                            value={konten.sosmed_twitter || ""}
+                            onChange={(e) => updateKonten("sosmed_twitter", e.target.value)}
+                            placeholder="https://x.com/..."
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                          />
+                        </div>
+                      </label>
+                      <label>
+                        <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">YouTube URL</span>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-red-600 font-bold">YT</span>
+                          <input
+                            type="text"
+                            value={konten.sosmed_yt || ""}
+                            onChange={(e) => updateKonten("sosmed_yt", e.target.value)}
+                            placeholder="https://youtube.com/..."
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                          />
+                        </div>
+                      </label>
+                      <label>
+                        <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">TikTok URL</span>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 font-bold">TT</span>
+                          <input
+                            type="text"
+                            value={konten.sosmed_tiktok || ""}
+                            onChange={(e) => updateKonten("sosmed_tiktok", e.target.value)}
+                            placeholder="https://tiktok.com/@username"
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
+                          />
+                        </div>
+                      </label>
                     </div>
-                  </label>
-                  {/* ... (IG, FB, Twitter, YouTube sudah ada) ... */}
-
-{/* ✅ TAMBAHKAN BLOK TIKTOK INI */}
-<label>
-  <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">
-    TikTok URL
-  </span>
-  <div className="relative">
-    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 font-bold">
-      TT
-    </span>
-    <input
-      type="text"
-      value={konten.sosmed_tiktok || ""}
-      onChange={(e) => updateKonten("sosmed_tiktok", e.target.value)}
-      placeholder="https://tiktok.com/@username"
-      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 pl-12 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white"
-    />
-  </div>
-</label>
-                </div>
-              </div>
-                                <button
+                  </div>
+                  <button
                     onClick={handleUpdateBeranda}
                     disabled={savingBeranda}
                     className="md:col-span-2 rounded-2xl bg-emerald-700 py-4 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
                   >
                     {savingBeranda ? "Menyimpan..." : "Simpan Konten Halaman Utama"}
                   </button>
-        
-
                 </div>
               ) : (
                 <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
@@ -1113,7 +1024,6 @@ const handleDeleteExistingFile = async (fileId) => {
                       </button>
                     ))}
                   </aside>
-
                   <section className="rounded-3xl border border-slate-200 bg-slate-50 p-4 md:p-5">
                     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div>
@@ -1121,7 +1031,6 @@ const handleDeleteExistingFile = async (fileId) => {
                         <h3 className="mt-1 text-xl font-black text-slate-950">Daftar Data Informasi</h3>
                         <p className="mt-1 text-xs text-slate-500">Data di bagian ini akan ditampilkan pada tabel Daftar Informasi Publik di halaman depan.</p>
                       </div>
-
                       <div className="flex flex-col gap-2 sm:flex-row">
                         <input
                           type="text"
@@ -1143,6 +1052,7 @@ const handleDeleteExistingFile = async (fileId) => {
                       <table className="w-full min-w-[850px] text-left">
                         <thead className="bg-slate-100 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
                           <tr>
+                            <th className="px-5 py-4">Urutan</th>
                             <th className="px-5 py-4">Nama Dokumen</th>
                             <th className="px-5 py-4">Berkas</th>
                             <th className="px-5 py-4 text-center">Status</th>
@@ -1152,7 +1062,7 @@ const handleDeleteExistingFile = async (fileId) => {
                         <tbody className="divide-y divide-slate-100 text-sm">
                           {filteredInformasi.length === 0 ? (
                             <tr>
-                              <td colSpan="4" className="px-5 py-10 text-center text-sm font-semibold text-slate-400">
+                              <td colSpan="5" className="px-5 py-10 text-center text-sm font-semibold text-slate-400">
                                 Belum ada data untuk kategori ini.
                               </td>
                             </tr>
@@ -1161,6 +1071,11 @@ const handleDeleteExistingFile = async (fileId) => {
                               const files = getInfoFiles(item);
                               return (
                                 <tr key={item.id} className="transition hover:bg-emerald-50/40">
+                                  <td className="px-5 py-4 align-top">
+                                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+                                      #{item.posisi || item.position || "-"}
+                                    </span>
+                                  </td>
                                   <td className="px-5 py-4 align-top">
                                     <p className="font-black text-slate-900">{getInfoTitle(item)}</p>
                                     <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{getInfoDescription(item) || "Tidak ada deskripsi"}</p>
@@ -1185,7 +1100,15 @@ const handleDeleteExistingFile = async (fileId) => {
                                     )}
                                   </td>
                                   <td className="px-5 py-4 text-center align-top">
-                                    <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${item.status_publish === "Sembunyi" ? "bg-slate-100 text-slate-500" : item.status_publish === "Private" ? "bg-amber-100 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
+                                    <span
+                                      className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${
+                                        item.status_publish === "Sembunyi"
+                                          ? "bg-slate-100 text-slate-500"
+                                          : item.status_publish === "Private"
+                                          ? "bg-amber-100 text-amber-700"
+                                          : "bg-emerald-50 text-emerald-700"
+                                      }`}
+                                    >
                                       {item.status_publish || item.status || "Tampil"}
                                     </span>
                                   </td>
@@ -1235,7 +1158,6 @@ const handleDeleteExistingFile = async (fileId) => {
                 ×
               </button>
             </div>
-
             <div className="space-y-5 p-6">
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4">
                 <div>
@@ -1244,32 +1166,26 @@ const handleDeleteExistingFile = async (fileId) => {
                 </div>
                 <StatusBadge status={selectedData.status} />
               </div>
-
               <div className="grid gap-3 md:grid-cols-2">
                 <FieldCard label="Kontak Pemohon">
                   <p className="font-bold text-slate-800">{selectedData.no_hp || "-"}</p>
                   <p className="mt-1 text-xs text-slate-500">{selectedData.email || "-"}</p>
                 </FieldCard>
-
                 <FieldCard label="Subjek">
                   <p className="font-bold text-slate-800">{selectedData.subjek || "-"}</p>
                 </FieldCard>
-
                 <div className="md:col-span-2">
                   <FieldCard label="Tujuan Informasi">
                     <p className="leading-6 text-slate-600">{selectedData.tujuan_informasi || "-"}</p>
                   </FieldCard>
                 </div>
-
                 <FieldCard label="Estimasi Waktu / Tanggal Estimasi">
                   <p className="font-bold text-slate-800">{selectedData.estimasi || "Belum diisi"}</p>
                 </FieldCard>
-
                 <FieldCard label="Catatan Proses Admin">
                   <p className="leading-6 text-slate-600">{selectedData.catatan_admin || selectedData.catatan || "Belum ada catatan"}</p>
                 </FieldCard>
               </div>
-
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-center">
                   <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-blue-400">Berkas Pemohon</p>
@@ -1280,7 +1196,6 @@ const handleDeleteExistingFile = async (fileId) => {
                     emptyText="Tidak ada berkas pemohon"
                   />
                 </div>
-
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-center">
                   <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-500">Berkas Balasan Admin</p>
                   <FilePreviewButton
@@ -1291,7 +1206,6 @@ const handleDeleteExistingFile = async (fileId) => {
                   />
                 </div>
               </div>
-
               <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                 <label className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Pesan Jawaban Admin</label>
                 <textarea
@@ -1307,7 +1221,6 @@ const handleDeleteExistingFile = async (fileId) => {
                   placeholder="Belum ada jawaban admin..."
                 />
               </div>
-
               {isEditMode ? (
                 <div className="space-y-4">
                   <label className="block rounded-3xl border-2 border-dashed border-slate-200 bg-white p-5 text-center transition hover:border-emerald-300 hover:bg-emerald-50/40">
@@ -1320,7 +1233,6 @@ const handleDeleteExistingFile = async (fileId) => {
                     />
                     {tempFile && <p className="mt-3 text-xs font-bold text-emerald-700">File dipilih: {tempFile.name}</p>}
                   </label>
-
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <button
                       onClick={() => handleSimpanJawaban(selectedData.id)}
@@ -1329,7 +1241,6 @@ const handleDeleteExistingFile = async (fileId) => {
                     >
                       {uploading ? "Mengunggah..." : "Simpan & Kirim Tanggapan"}
                     </button>
-
                     {(selectedStatus === "Selesai" || selectedData.pesan_admin || selectedData.berkas_balasan) && (
                       <button
                         onClick={() => handleHapusJawaban(selectedData.id)}
@@ -1401,12 +1312,10 @@ const handleDeleteExistingFile = async (fileId) => {
                 ×
               </button>
             </div>
-
             <div className="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-black text-slate-900">{processData.nama_lengkap || "Tanpa nama"}</p>
               <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{processData.subjek || "Tanpa subjek"}</p>
             </div>
-
             <div className="space-y-4">
               <label className="block">
                 <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Estimasi Waktu / Tanggal Estimasi</span>
@@ -1418,7 +1327,6 @@ const handleDeleteExistingFile = async (fileId) => {
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100"
                 />
               </label>
-
               <label className="block">
                 <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Catatan Admin</span>
                 <textarea
@@ -1429,7 +1337,6 @@ const handleDeleteExistingFile = async (fileId) => {
                   className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100"
                 />
               </label>
-
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={() => handleProses(processData.id)}
@@ -1449,34 +1356,7 @@ const handleDeleteExistingFile = async (fileId) => {
           </div>
         </div>
       )}
-{infoForm.existingFiles && infoForm.existingFiles.length > 0 && (
-  <div className="mb-5">
-    <label className="mb-2 block text-sm font-bold text-slate-700">
-      Berkas yang sudah diupload
-    </label>
 
-    <div className="space-y-2">
-      {infoForm.existingFiles.map((file) => (
-        <div
-          key={file.id}
-          className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
-        >
-          <span className="truncate text-sm">
-            📄 {file.nama_asli}
-          </span>
-
-          <button
-            type="button"
-            onClick={() => handleDeleteExistingFile(file.id)}
-            className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700"
-          >
-            Hapus
-          </button>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
       {showInfoForm && (
         <div className="fixed inset-0 z-[56] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
@@ -1493,7 +1373,6 @@ const handleDeleteExistingFile = async (fileId) => {
                 ×
               </button>
             </div>
-
             <div className="grid gap-4 md:grid-cols-2">
               <label className="md:col-span-2">
                 <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Kategori Informasi</span>
@@ -1510,41 +1389,18 @@ const handleDeleteExistingFile = async (fileId) => {
                 </select>
               </label>
 
-              <label className="md:col-span-2">
-                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Nama / Judul Dokumen</span>
-               {infoForm.existingFiles && infoForm.existingFiles.length > 0 && (
-                <div className="mt-4 mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left">
-                  <div className="mb-2 text-xs font-black uppercase text-slate-500">
-                    Berkas yang sudah diupload
-                  </div>
-
-                  {infoForm.existingFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      className="flex items-center justify-between border-b py-2 last:border-b-0"
-                    >
-                      <span className="text-sm">
-                        📄 {file.nama_asli}
-                      </span>
-
-          <button
-            type="button"
-            onClick={() => handleDeleteExistingFile(file.id)}
-            className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700"
-          >
-            Hapus
-          </button>
-        </div>
-      ))}
-    </div>
-  )}
+              {/* ✅ INPUT URUTAN/POSISI */}
+              <label>
+                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Urutan / Posisi Tampil</span>
                 <input
-                  type="text"
-                  value={infoForm.judul}
-                  onChange={(e) => setInfoForm((prev) => ({ ...prev, judul: e.target.value }))}
-                  placeholder="Contoh: Laporan Realisasi Program Kerja 2026"
+                  type="number"
+                  min="1"
+                  value={infoForm.posisi}
+                  onChange={(e) => setInfoForm((prev) => ({ ...prev, posisi: parseInt(e.target.value) || 1 }))}
+                  placeholder="Contoh: 1, 2, 3..."
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                 />
+                <p className="mt-1 text-[10px] text-slate-400">Semakin kecil angka, semakin atas posisinya</p>
               </label>
 
               <label>
@@ -1553,6 +1409,17 @@ const handleDeleteExistingFile = async (fileId) => {
                   type="text"
                   value={infoForm.tahun}
                   onChange={(e) => setInfoForm((prev) => ({ ...prev, tahun: e.target.value }))}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                />
+              </label>
+
+              <label className="md:col-span-2">
+                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Nama / Judul Dokumen</span>
+                <input
+                  type="text"
+                  value={infoForm.judul}
+                  onChange={(e) => setInfoForm((prev) => ({ ...prev, judul: e.target.value }))}
+                  placeholder="Contoh: Laporan Realisasi Program Kerja 2026"
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                 />
               </label>
@@ -1581,10 +1448,32 @@ const handleDeleteExistingFile = async (fileId) => {
                 />
               </label>
 
+              {infoForm.existingFiles && infoForm.existingFiles.length > 0 && (
+                <div className="md:col-span-2 mb-2">
+                  <label className="mb-2 block text-sm font-bold text-slate-700">Berkas yang sudah diupload</label>
+                  <div className="space-y-2">
+                    {infoForm.existingFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
+                      >
+                        <span className="truncate text-sm"> {file.nama_asli}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExistingFile(file.id)}
+                          className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <label className="md:col-span-2 block rounded-3xl border-2 border-dashed border-slate-200 bg-white p-5 text-center transition hover:border-emerald-300 hover:bg-emerald-50/40">
                 <span className="block text-sm font-black text-slate-800">Upload Berkas</span>
                 <span className="mt-1 block text-xs text-slate-400">Bisa pilih banyak file sekaligus. PDF, Word, Excel, gambar, dan dokumen lain.</span>
-               
                 <input
                   type="file"
                   multiple
@@ -1639,14 +1528,12 @@ const handleDeleteExistingFile = async (fileId) => {
                 </button>
               </div>
             </div>
-
             {renderPreviewContent()}
           </div>
         </div>
       )}
     </div>
   );
-  
 };
 
 export default DashboardAdmin;
