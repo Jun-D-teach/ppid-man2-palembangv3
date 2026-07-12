@@ -32,6 +32,7 @@ const ExpandableDescription = ({ text, renderCleanContent }) => {
 };
 
 // Komponen File Attachment Card yang modern
+// Komponen File Attachment Card yang modern & responsif
 const FileAttachmentCard = ({ file }) => {
   const getFileFormat = (fileName = "") => {
     if (!fileName.includes(".")) return "FILE";
@@ -39,14 +40,14 @@ const FileAttachmentCard = ({ file }) => {
   };
   const format = getFileFormat(file.nama_file);
   const formatColors = {
-    PDF: "bg-red-100 text-red-700 border-red-200",
-    DOC: "bg-blue-100 text-blue-700 border-blue-200",
-    DOCX: "bg-blue-100 text-blue-700 border-blue-200",
-    XLS: "bg-green-100 text-green-700 border-green-200",
-    XLSX: "bg-green-100 text-green-700 border-green-200",
-    JPG: "bg-amber-100 text-amber-700 border-amber-200",
-    JPEG: "bg-amber-100 text-amber-700 border-amber-200",
-    PNG: "bg-purple-100 text-purple-700 border-purple-200",
+    PDF: "bg-red-50 text-red-700 border-red-200",
+    DOC: "bg-blue-50 text-blue-700 border-blue-200",
+    DOCX: "bg-blue-50 text-blue-700 border-blue-200",
+    XLS: "bg-green-50 text-green-700 border-green-200",
+    XLSX: "bg-green-50 text-green-700 border-green-200",
+    JPG: "bg-amber-50 text-amber-700 border-amber-200",
+    JPEG: "bg-amber-50 text-amber-700 border-amber-200",
+    PNG: "bg-purple-50 text-purple-700 border-purple-200",
   };
   const colorClass = formatColors[format] || "bg-slate-100 text-slate-700 border-slate-200";
 
@@ -55,31 +56,27 @@ const FileAttachmentCard = ({ file }) => {
       href={getUploadUrl(file.nama_file)}
       target="_blank"
       rel="noreferrer"
-      className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 md:p-4 transition-all hover:border-emerald-300 hover:shadow-md hover:-translate-y-0.5"
+      className="group flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 transition-all hover:border-emerald-300 hover:shadow-md hover:-translate-y-0.5"
     >
-      {/* Icon File */}
-      <div className={`shrink-0 grid h-10 w-10 md:h-12 md:w-12 place-items-center rounded-lg border text-[10px] md:text-xs font-black ${colorClass}`}>
+      {/* Icon Format File */}
+      <div className={`shrink-0 grid h-11 w-11 place-items-center rounded-lg border text-[10px] font-black ${colorClass}`}>
         {format}
       </div>
-      {/* Nama File */}
+      {/* Nama File - BISA WRAP 2 BARIS */}
       <div className="flex-1 min-w-0">
-        <p className="text-xs md:text-sm font-bold text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
+        <p className="text-xs md:text-sm font-bold text-slate-800 leading-snug line-clamp-2 group-hover:text-emerald-700 transition-colors break-words">
           {file.nama_asli || file.nama_file}
         </p>
-        <p className="text-[10px] md:text-[11px] text-slate-400 mt-0.5">
+        <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
           Klik untuk unduh / lihat
         </p>
-      </div>
-      {/* Download Icon */}
-      <div className="shrink-0 text-slate-300 group-hover:text-emerald-600 transition-colors">
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
       </div>
     </a>
   );
 };
-
 export default function Page() {
   const { slug } = useParams();
   const navigate = useNavigate();
