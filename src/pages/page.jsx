@@ -244,29 +244,30 @@ export default function Page() {
           )}
 
           {/* Area Lampiran Berkas Bawaan Menu */}
-          {page.berkas_list && page.berkas_list.length > 0 && (
-            <div className="mt-8 rounded-xl border border-emerald-100 bg-emerald-50/20 p-4 md:p-5">
-              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800">
-                📎 Lampiran Dokumen Menu:
-              </p>
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {page.berkas_list.map((file) => (
-                  <a
-                    key={file.id}
-                    href={getUploadUrl(file.nama_file)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-between gap-3 rounded-lg border border-gray-200/60 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-3xs transition hover:border-emerald-300 hover:text-emerald-800"
-                  >
-                    <span className="truncate max-w-[80%]">📂 {file.nama_asli || file.nama_file}</span>
-                    <span className="shrink-0 rounded bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold text-emerald-800">
-                      {getFileFormat(file.nama_file)}
-                    </span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Area Lampiran Berkas Bawaan Menu */}
+{(posts[0]?.berkas_list?.length > 0 || page.berkas_list?.length > 0) && (
+  <div className="mt-8 rounded-xl border border-emerald-100 bg-emerald-50/20 p-4 md:p-5">
+    <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800">
+      📎 Lampiran Dokumen Menu:
+    </p>
+    <div className="grid gap-2.5 sm:grid-cols-2">
+      {(posts[0]?.berkas_list || page.berkas_list || []).map((file) => (
+        <a
+          key={file.id}
+          href={getUploadUrl(file.nama_file)}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-between gap-3 rounded-lg border border-gray-200/60 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-3xs transition hover:border-emerald-300 hover:text-emerald-800"
+        >
+          <span className="truncate max-w-[80%]">📂 {file.nama_asli || file.nama_file}</span>
+          <span className="shrink-0 rounded bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold text-emerald-800">
+            {getFileFormat(file.nama_file)}
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
 
           {/* KHUSUS MENU INFORMASI PUBLIK: TABEL DAFTAR DATA INFORMASI BESERTA BERKASNYA */}
           {isKategoriInformasiPublik && (
