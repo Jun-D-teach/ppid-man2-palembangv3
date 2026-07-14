@@ -324,7 +324,18 @@ app.get(
     res.json(rows[0] || {});
   }),
 );
-
+/* =========================
+LANDING CONTENT (Alias untuk Beranda)
+========================= */
+app.get(
+  "/api/landing-content",
+  asyncHandler(async (req, res) => {
+    const [rows] = await db.query(
+      "SELECT * FROM informasi_beranda WHERE id = 1 LIMIT 1",
+    );
+    res.json(rows[0] || {});
+  }),
+);
 app.put(
   "/api/admin/beranda",
   requireAdmin,
@@ -1495,6 +1506,144 @@ app.get(
     res.json(await attachMenuPageFiles(pages));
   }),
 );
+app.get(
+  "/api/admin/menu-pages/:id",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const [pages] = await db.query(
+      "SELECT * FROM menu_pages WHERE id = ? LIMIT 1",
+      [id],
+    );
+
+    if (pages.length === 0) {
+      return res.status(404).json({ message: "Halaman tidak ditemukan" });
+    }
+
+    // Attach files jika ada
+    const result = await attachMenuPageFiles(pages);
+    res.json(result[0]);
+  }),
+);
+app.post(
+  "/api/admin/menu-pages",
+  requireAdmin,
+  upload.array("berkas"),
+  asyncHandler(async (req, res) => {
+    const {
+      parent_menu,
+      menu_label,
+      slug,
+      judul,
+      isi,
+      status_publish,
+      position,
+    } = req.body;
+
+    if (!parent_menu || !menu_label || !judul) {
+      return res.status(400).json({
+        message: "Menu utama, nama submenu, dan judul halaman wajib diisi",
+      });
+    }
+
+    const finalSlug = slugify(slug || menu_label || judul);
+    if (!finalSlug) {
+      return res.status(400).json({ message: "Slug/link menu tidak valid" });
+    }
+
+    const [result] = await db.query(
+      `INSERT INTO menu_pages
+      (parent_menu, menu_label, slug, judul, isi, status_publish, position, is_builtin)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+    `,
+      [
+        String(parent_menu).toUpperCase(),
+        menu_label,
+        finalSlug,
+        judul,
+        isi || "",
+        status_publish || "Tampil",
+        Number(position || 1),
+      ],
+    );
+
+    const pageId = result.insertId;
+
+    if (req.files?.length) {
+      for (const file of req.files) {
+        await db.query(
+          `INSERT INTO menu_page_files
+          (page_id, nama_file, nama_asli, mime_type, ukuran)
+          VALUES (?, ?, ?, ?, ?)`,
+          [pageId, file.filename, file.originalname, file.mimetype, file.size],
+        );
+      }
+    }
+
+    res
+      .status(201)
+      .json({ message: "Halaman menu berhasil ditambahkan", id: pageId });
+  }),
+);
+app.put(
+  "/api/admin/menu-pages/:id",
+  requireAdmin,
+  upload.array("berkas"),
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const {
+      parent_menu,
+      menu_label,
+      slug,
+      judul,
+      isi,
+      status_publish,
+      position,
+    } = req.body;
+
+    if (!parent_menu || !menu_label || !judul) {
+      return res.status(400).json({
+        message: "Menu utama, nama submenu, dan judul halaman wajib diisi",
+      });
+    }
+
+    const finalSlug = slugify(slug || menu_label || judul);
+
+    await db.query(
+      `UPDATE menu_pages
+    SET parent_menu = ?, menu_label = ?, slug = ?, judul = ?, isi = ?, status_publish = ?, position = ?
+    WHERE id = ?`,
+      [
+        String(parent_menu).toUpperCase(),
+        menu_label,
+        finalSlug,
+        judul,
+        isi || "",
+        status_publish || "Tampil",
+        Number(position || 1),
+        id,
+      ],
+    );
+
+    if (req.files?.length) {
+      for (const file of req.files) {
+        await db.query(
+          `
+          INSERT INTO menu_page_files
+          (page_id, nama_file, nama_asli, mime_type, ukuran)
+          VALUES (?, ?, ?, ?, ?)
+        `,
+          [id, file.filename, file.originalname, file.mimetype, file.size],
+        );
+      }
+    }
+
+    res.json({ message: "Halaman menu berhasil diperbarui" });
+  }),
+);
+/* =========================
+GET SINGLE MENU PAGE BY ID (Admin)
+========================= */
 
 app.delete(
   "/api/admin/menu-pages/:id",
