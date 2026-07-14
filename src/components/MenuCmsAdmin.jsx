@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { api, getUploadUrl } from "../api";
 
-const parentMenuOptions = ["PROFIL", "REGULASI", "INFORMASI PUBLIK", "LAYANAN INFORMASI", "LAPORAN"];
+// ✅ TAMBAHKAN "STANDAR LAYANAN" KE DAFTAR MENU
+const parentMenuOptions = ["PROFIL", "REGULASI", "STANDAR LAYANAN", "INFORMASI PUBLIK", "LAYANAN INFORMASI", "LAPORAN"];
 
 const initialForm = {
   id: null,
@@ -131,7 +132,7 @@ const MenuCmsAdmin = () => {
       formData.append("isi", form.isi || "");
       formData.append("status_publish", form.status_publish);
       formData.append("position", form.position || 1);
-
+      
       Array.from(form.files || []).forEach((file) => {
         formData.append("berkas", file);
       });
@@ -160,7 +161,6 @@ const MenuCmsAdmin = () => {
 
   const handleDeletePage = async (item) => {
     if (!window.confirm(`Hapus menu "${item.menu_label}" beserta semua berkasnya?`)) return;
-
     try {
       await api.delete(`/api/admin/menu-pages/${item.id}`);
       alert("Halaman menu berhasil dihapus.");
@@ -173,7 +173,6 @@ const MenuCmsAdmin = () => {
 
   const handleDeleteFile = async (file) => {
     if (!window.confirm(`Hapus berkas "${file.nama_asli || file.nama_file}"?`)) return;
-
     try {
       await api.delete(`/api/admin/menu-pages/${form.id}/files/${file.id}`);
       alert("Berkas berhasil dihapus.");
@@ -199,7 +198,6 @@ const MenuCmsAdmin = () => {
               Gunakan bagian ini untuk mengedit submenu seperti Profil PPID, Visi & Misi, SOP PPID, SK PPID, Prosedur Keberatan, Laporan Tahunan, dan menu lain. Isi halaman serta berkas lampiran akan muncul saat pengunjung mengeklik submenu di halaman utama.
             </p>
           </div>
-
           <button
             onClick={openCreateForm}
             className="rounded-2xl bg-emerald-700 px-5 py-3 text-xs font-black uppercase text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
@@ -232,7 +230,6 @@ const MenuCmsAdmin = () => {
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">{activeParent}</p>
                 <h3 className="mt-1 text-xl font-black text-slate-950">Daftar Submenu</h3>
               </div>
-
               <input
                 type="text"
                 value={search}
