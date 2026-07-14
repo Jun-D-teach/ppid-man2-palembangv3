@@ -31,6 +31,10 @@ function NavbarAtas() {
     { parent_menu: "REGULASI", menu_label: "Peraturan Menteri", slug: "peraturan-menteri", position: 2 },
     { parent_menu: "REGULASI", menu_label: "SOP PPID", slug: "sop-ppid", position: 3 },
     { parent_menu: "REGULASI", menu_label: "SK PPID", slug: "sk-ppid", position: 4 },
+    { parent_menu: "STANDAR LAYANAN", menu_label: "Standar Pelayanan", slug: "standar-pelayanan", position: 1 },
+  { parent_menu: "STANDAR LAYANAN", menu_label: "Maklumat Pelayanan", slug: "maklumat-pelayanan-standar", position: 2 },
+  { parent_menu: "STANDAR LAYANAN", menu_label: "Prosedur Layanan", slug: "prosedur-layanan", position: 3 },
+  
     { parent_menu: "INFORMASI PUBLIK", menu_label: "Informasi Berkala", slug: "informasi-berkala", position: 1 },
     { parent_menu: "INFORMASI PUBLIK", menu_label: "Informasi Serta Merta", slug: "informasi-serta-merta", position: 2 },
     { parent_menu: "INFORMASI PUBLIK", menu_label: "Informasi Setiap Saat", slug: "informasi-setiap-saat", position: 3 },
@@ -42,9 +46,10 @@ function NavbarAtas() {
     { parent_menu: "LAPORAN", menu_label: "Laporan Tahunan", slug: "laporan-tahunan", position: 1 },
     { parent_menu: "LAPORAN", menu_label: "Laporan Statistik", slug: "laporan-statistik", position: 2 },
     { parent_menu: "LAPORAN", menu_label: "Laporan Akses", slug: "laporan-akses", position: 3 },
+    
   ];
 
-  const parentOrder = ["PROFIL", "REGULASI", "INFORMASI PUBLIK", "LAYANAN INFORMASI", "LAPORAN"];
+  const parentOrder = ["PROFIL", "REGULASI", "STANDAR LAYANAN","INFORMASI PUBLIK", "LAYANAN INFORMASI", "LAPORAN"];
 
   useEffect(() => {
     const loggedInUser = localStorage.getItem("user");
@@ -344,7 +349,7 @@ function NavbarAtas() {
 function FooterBawah() {
   const [konten, setKonten] = useState({});
   useEffect(() => {
-    api.get("/api/landing-content")
+   api.get("/api/beranda")
       .then((res) => {
         if (res.data) setKonten(res.data);
       })
@@ -355,7 +360,7 @@ function FooterBawah() {
       <div className="mx-auto max-w-5xl px-6 grid gap-8 sm:grid-cols-3">
         <div>
           <img
-            src="https://man2plg.sch.id/Foto/logo.png"
+            src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_Kemenag_new.png"
             alt="Logo Kemenag"
             className="h-12 w-12 object-contain mb-4 drop-shadow-md"
           />
@@ -376,7 +381,7 @@ function FooterBawah() {
             <br />
             📧 {konten.kontak_email || "ppid@man2plg.sch.id"}
             <br />
-            📞 {konten.kontak_telepon || "0821 8697 2771"}
+            📞 {konten.kontak_telepon || "(0711) 123456"}
           </p>
         </div>
 
