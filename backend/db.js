@@ -72,8 +72,7 @@ const defaultDb = {
     { id: 2, name: "Profil", href: "#", submenu: JSON.stringify([
       { name: "Profil PPID", href: "/page/profil-ppid" },
       { name: "Visi & Misi", href: "/page/visi-misi" },
-      { name: "Tugas & Fungsi", href: "/page/tugas-fungsi" },
-      { name: "Struktur Organisasi", href: "/page/struktur-organisasi" },
+    { name: "Struktur Organisasi", href: "/page/struktur-organisasi" },
       { name: "Maklumat Pelayanan", href: "/page/maklumat-pelayanan" }
     ]), position: 2 },
     { id: 3, name: "Regulasi", href: "#", submenu: JSON.stringify([
