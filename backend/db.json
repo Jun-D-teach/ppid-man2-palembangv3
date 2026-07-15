@@ -130,42 +130,7 @@
       "is_builtin": 1,
       "created_at": "2026-06-23T06:00:08.671Z"
     },
-    {
-      "id": 3,
-      "parent_menu": "PROFIL",
-      "menu_label": "Tugas & Fungsi",
-      "slug": "tugas-fungsi",
-      "judul": "Tugas & Fungsi",
-      "isi": "Tugas dan fungsi PPID dapat diedit melalui Panel Admin > Atur Menu Website.",
-      "status_publish": "Tampil",
-      "position": 3,
-      "is_builtin": 0,
-      "created_at": "2026-06-23T06:00:09.451Z"
-    },
-    {
-      "id": 4,
-      "parent_menu": "PROFIL",
-      "menu_label": "Struktur Organisasi",
-      "slug": "struktur-organisasi",
-      "judul": "Struktur Organisasi",
-      "isi": "Struktur organisasi dapat diedit dan dilengkapi berkas melalui Panel Admin.",
-      "status_publish": "Tampil",
-      "position": 4,
-      "is_builtin": 0,
-      "created_at": "2026-06-23T06:00:09.451Z"
-    },
-    {
-      "id": 5,
-      "parent_menu": "PROFIL",
-      "menu_label": "Maklumat Pelayanan",
-      "slug": "maklumat-pelayanan",
-      "judul": "Maklumat Pelayanan",
-      "isi": "Maklumat pelayanan dapat diedit melalui Panel Admin.",
-      "status_publish": "Tampil",
-      "position": 5,
-      "is_builtin": 0,
-      "created_at": "2026-06-23T06:00:09.451Z"
-    },
+   
     {
       "id": 6,
       "parent_menu": "REGULASI",
@@ -262,30 +227,7 @@
       "is_builtin": 0,
       "created_at": "2026-06-23T06:00:09.454Z"
     },
-    {
-      "id": 14,
-      "parent_menu": "LAYANAN INFORMASI",
-      "menu_label": "Prosedur Permohonan",
-      "slug": "prosedur-permohonan",
-      "judul": "Prosedur Permohonan",
-      "isi": "Prosedur permohonan informasi dapat diedit melalui Panel Admin > Atur Menu Website.",
-      "status_publish": "Tampil",
-      "position": 1,
-      "is_builtin": 0,
-      "created_at": "2026-06-23T06:00:09.454Z"
-    },
-    {
-      "id": 15,
-      "parent_menu": "LAYANAN INFORMASI",
-      "menu_label": "Prosedur Keberatan",
-      "slug": "prosedur-keberatan",
-      "judul": "Prosedur Keberatan",
-      "isi": "Prosedur keberatan dapat diedit melalui Panel Admin.",
-      "status_publish": "Tampil",
-      "position": 2,
-      "is_builtin": 0,
-      "created_at": "2026-06-23T06:00:09.455Z"
-    },
+        
     {
       "id": 16,
       "parent_menu": "LAYANAN INFORMASI",
