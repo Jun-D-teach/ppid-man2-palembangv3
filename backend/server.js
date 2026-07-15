@@ -1133,38 +1133,7 @@ const defaultMenuPages = [
     isi: "Isi profil PPID dapat diedit melalui Panel Admin > Atur Menu Website.",
     position: 1,
   },
-  {
-    parent_menu: "PROFIL",
-    menu_label: "Visi & Misi",
-    slug: "visi-misi",
-    judul: "Visi & Misi",
-    isi: "Visi dan misi PPID dapat diedit melalui Panel Admin > Atur Menu Website.",
-    position: 2,
-  },
-  {
-    parent_menu: "PROFIL",
-    menu_label: "Tugas & Fungsi",
-    slug: "tugas-fungsi",
-    judul: "Tugas & Fungsi",
-    isi: "Tugas dan fungsi PPID dapat diedit melalui Panel Admin > Atur Menu Website.",
-    position: 3,
-  },
-  {
-    parent_menu: "PROFIL",
-    menu_label: "Struktur Organisasi",
-    slug: "struktur-organisasi",
-    judul: "Struktur Organisasi",
-    isi: "Struktur organisasi dapat diedit dan dilengkapi berkas melalui Panel Admin.",
-    position: 4,
-  },
-  {
-    parent_menu: "PROFIL",
-    menu_label: "Maklumat Pelayanan",
-    slug: "maklumat-pelayanan",
-    judul: "Maklumat Pelayanan",
-    isi: "Maklumat pelayanan dapat diedit melalui Panel Admin.",
-    position: 5,
-  },
+ 
   {
     parent_menu: "REGULASI",
     menu_label: "UU KIP",
@@ -1206,22 +1175,8 @@ const defaultMenuPages = [
     isi: "Klik menu ini untuk melihat daftar dokumen informasi dikecualikan pada tabel informasi publik.",
     position: 4,
   },
-  {
-    parent_menu: "LAYANAN INFORMASI",
-    menu_label: "Prosedur Permohonan",
-    slug: "prosedur-permohonan",
-    judul: "Prosedur Permohonan",
-    isi: "Prosedur permohonan informasi dapat diedit melalui Panel Admin > Atur Menu Website.",
-    position: 1,
-  },
-  {
-    parent_menu: "LAYANAN INFORMASI",
-    menu_label: "Prosedur Keberatan",
-    slug: "prosedur-keberatan",
-    judul: "Prosedur Keberatan",
-    isi: "Prosedur keberatan dapat diedit melalui Panel Admin.",
-    position: 2,
-  },
+  
+ 
   {
     parent_menu: "LAYANAN INFORMASI",
     menu_label: "Biaya Layanan",
