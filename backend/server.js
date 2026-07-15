@@ -1173,30 +1173,7 @@ const defaultMenuPages = [
     isi: "Konten regulasi UU KIP dapat diedit dan dilengkapi berkas melalui Panel Admin.",
     position: 1,
   },
-  {
-    parent_menu: "REGULASI",
-    menu_label: "Peraturan Menteri",
-    slug: "peraturan-menteri",
-    judul: "Peraturan Menteri",
-    isi: "Konten peraturan menteri dapat diedit dan dilengkapi berkas melalui Panel Admin.",
-    position: 2,
-  },
-  {
-    parent_menu: "REGULASI",
-    menu_label: "SOP PPID",
-    slug: "sop-ppid",
-    judul: "SOP PPID",
-    isi: "SOP PPID dapat diedit dan dilengkapi berkas melalui Panel Admin.",
-    position: 3,
-  },
-  {
-    parent_menu: "REGULASI",
-    menu_label: "SK PPID",
-    slug: "sk-ppid",
-    judul: "SK PPID",
-    isi: "SK PPID dapat diedit dan dilengkapi berkas melalui Panel Admin.",
-    position: 4,
-  },
+
   {
     parent_menu: "INFORMASI PUBLIK",
     menu_label: "Informasi Berkala",
@@ -1253,22 +1230,7 @@ const defaultMenuPages = [
     isi: "Informasi biaya layanan dapat diedit melalui Panel Admin.",
     position: 3,
   },
-  {
-    parent_menu: "LAYANAN INFORMASI",
-    menu_label: "Hak & Tata Cara",
-    slug: "hak-tata-cara",
-    judul: "Hak & Tata Cara",
-    isi: "Hak dan tata cara memperoleh informasi dapat diedit melalui Panel Admin.",
-    position: 4,
-  },
-  {
-    parent_menu: "LAPORAN",
-    menu_label: "Laporan Tahunan",
-    slug: "laporan-tahunan",
-    judul: "Laporan Tahunan",
-    isi: "Laporan tahunan dapat diedit dan dilengkapi berkas melalui Panel Admin.",
-    position: 1,
-  },
+
   {
     parent_menu: "LAPORAN",
     menu_label: "Laporan Statistik",
