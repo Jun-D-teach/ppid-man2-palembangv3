@@ -198,7 +198,7 @@ function NavbarAtas() {
               alt="Logo"
               className="h-10 md:h-14"
               onError={(e) => {
-                e.target.src = "https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_Kemenag_new.png";
+                e.target.src = "https://man2plg.sch.id/Foto/logo.png";
               }}
             />
             <div className="border-l-2 border-gray-200 pl-3">
