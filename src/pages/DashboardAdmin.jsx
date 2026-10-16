@@ -197,6 +197,9 @@ const DashboardAdmin = () => {
   const [selectedSubmenuId, setSelectedSubmenuId] = useState(null);
   const [users, setUsers] = useState([]);
 const [userSearch, setUserSearch] = useState("");
+const [resetPassData, setResetPassData] = useState(null);
+const [newPass, setNewPass] = useState("");
+const [resetLoading, setResetLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -230,6 +233,38 @@ const [userSearch, setUserSearch] = useState("");
       setInformasiPublik([]);
     }
   }, []);
+  const openResetPassword = (user) => {
+  setResetPassData(user);
+  setNewPass("");
+};
+
+const closeResetPassword = () => {
+  setResetPassData(null);
+  setNewPass("");
+};
+
+const handleResetPassword = async () => {
+  if (!newPass || newPass.length < 6) {
+    alert("Password minimal 6 karakter!");
+    return;
+  }
+  if (!window.confirm(`Reset password untuk "${resetPassData.nama_lengkap}"?`)) {
+    return;
+  }
+  try {
+    setResetLoading(true);
+    await api.put(`/api/admin/users/${resetPassData.id}/reset-password`, {
+      newPassword: newPass,
+    });
+    alert(`Password untuk "${resetPassData.nama_lengkap}" berhasil direset!`);
+    closeResetPassword();
+  } catch (err) {
+    alert(err.response?.data?.message || "Gagal mereset password");
+  } finally {
+    setResetLoading(false);
+  }
+};
+
   const fetchUsers = useCallback(async () => {
   try {
     const res = await api.get("/api/admin/users");
@@ -914,26 +949,34 @@ fetchUsers();
                       </p>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <div className="flex justify-end gap-2">
-                        {u.role !== "admin" && (
-                          <button
-                            onClick={async () => {
-                              if (!window.confirm(`Hapus pengguna "${u.nama_lengkap}"?`)) return;
-                              try {
-                                await api.delete(`/api/admin/users/${u.id}`);
-                                alert("Pengguna berhasil dihapus");
-                                fetchUsers();
-                              } catch (err) {
-                                alert(err.response?.data?.message || "Gagal menghapus");
-                              }
-                            }}
-                            className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black uppercase text-red-600 transition hover:bg-red-50"
-                          >
-                            Hapus
-                          </button>
-                        )}
-                      </div>
-                    </td>
+  <div className="flex justify-end gap-2">
+   {u.role !== "admin" && (
+  <>
+    <button
+      onClick={() => openResetPassword(u)}
+      className="rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-black uppercase text-amber-600 transition hover:bg-amber-50"
+    >
+      Reset Pass
+    </button>
+    <button
+      onClick={async () => {
+        if (!window.confirm(`Hapus pengguna "${u.nama_lengkap}"?`)) return;
+        try {
+          await api.delete(`/api/admin/users/${u.id}`);
+          alert("Pengguna berhasil dihapus");
+          fetchUsers();
+        } catch (err) {
+          alert(err.response?.data?.message || "Gagal menghapus");
+        }
+      }}
+      className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black uppercase text-red-600 transition hover:bg-red-50"
+    >
+      Hapus
+    </button>
+  </>
+)}
+  </div>
+</td>
                   </tr>
                 ))}
             </tbody>
@@ -1720,6 +1763,60 @@ fetchUsers();
           </div>
         </div>
       )}
+      {/* MODAL RESET PASSWORD */}
+{resetPassData && (
+  <div className="fixed inset-0 z-[65] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
+    <div className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-2xl">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600">Reset Password</p>
+          <h3 className="mt-1 text-xl font-black text-slate-950">Buat Password Baru</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Untuk pengguna: <strong>{resetPassData.nama_lengkap}</strong>
+          </p>
+        </div>
+        <button
+          onClick={closeResetPassword}
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-lg font-black text-slate-500 transition hover:bg-red-50 hover:text-red-600"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <label className="block">
+          <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Password Baru</span>
+          <input
+            type="text"
+            value={newPass}
+            onChange={(e) => setNewPass(e.target.value)}
+            placeholder="Minimal 6 karakter"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100"
+          />
+          <p className="mt-1 text-[10px] text-slate-400">
+            💡 Berikan password ini kepada pengguna secara pribadi.
+          </p>
+        </label>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={handleResetPassword}
+            disabled={resetLoading}
+            className="flex-1 rounded-2xl bg-amber-600 py-4 text-sm font-black uppercase text-white shadow-lg shadow-amber-900/10 transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {resetLoading ? "Memproses..." : "Simpan Password Baru"}
+          </button>
+          <button
+            onClick={closeResetPassword}
+            className="rounded-2xl border border-slate-200 px-5 py-4 text-sm font-black uppercase text-slate-500 transition hover:bg-slate-50"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

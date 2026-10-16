@@ -1845,6 +1845,25 @@ app.put(
 ========================= */
 
 // GET: Ambil semua pengguna
+// PUT: Reset password pengguna (Admin)
+app.put(
+  "/api/admin/users/:id/reset-password",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "Password minimal 6 karakter" });
+    }
+
+    // Gunakan fungsi hashPassword yang sudah ada di atas file ini
+    const hashedPassword = await hashPassword(newPassword);
+    
+    await db.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, id]);
+    res.json({ message: "Password berhasil direset" });
+  })
+);
 app.get(
   "/api/admin/users",
   requireAdmin,
@@ -1888,6 +1907,23 @@ app.put(
     }
     await db.query("UPDATE users SET role = ? WHERE id = ?", [role, id]);
     res.json({ message: "Role pengguna berhasil diperbarui" });
+  })
+);
+// PUT: Reset password pengguna (Admin)
+app.put(
+  "/api/admin/users/:id/reset-password",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "Password minimal 6 karakter" });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await db.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, id]);
+    res.json({ message: "Password berhasil direset" });
   })
 );
 /* =========================
