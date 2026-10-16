@@ -3,25 +3,53 @@ import { useEffect, useState, useMemo } from "react";
 import { api, getUploadUrl } from "../api";
 
 // Komponen deskripsi panjang dengan tombol "Selengkapnya"
+
+// Komponen deskripsi panjang dengan tombol "Selengkapnya"
 const ExpandableDescription = ({ text, renderCleanContent }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+
   if (!text) return null;
-  if (text.length <= 120) {
+
+  const maxLength = 120;
+
+  // Jika pendek, tampilkan seluruh teks
+  if (text.length <= maxLength) {
     return (
       <div className="text-[11px] md:text-xs text-slate-400 mt-1 font-medium leading-relaxed">
         {renderCleanContent(text)}
       </div>
     );
   }
-  const truncatedText = text.substring(0, 120) + "...";
+
+  // Hindari memotong URL di tengah tautan
+  let cutPosition = maxLength;
+  const urlRegex = /https?:\/\/[^\s)]+/g;
+  let match;
+
+  while ((match = urlRegex.exec(text)) !== null) {
+    const urlStart = match.index;
+    const urlEnd = urlStart + match[0].length;
+
+    if (urlStart < cutPosition && urlEnd > cutPosition) {
+      cutPosition = urlEnd;
+      break;
+    }
+  }
+
+  const truncatedText = text.substring(0, cutPosition) + "...";
+
   return (
     <div className="text-[11px] md:text-xs text-slate-400 mt-1 font-medium leading-relaxed">
-      {renderCleanContent(isExpanded ? text : truncatedText)}
+      {renderCleanContent(
+        isExpanded ? text : truncatedText
+      )}
+
       <button
         type="button"
         onClick={(e) => {
           e.preventDefault();
-          setIsExpanded(!isExpanded);
+          e.stopPropagation();
+          setIsExpanded((prev) => !prev);
         }}
         className="ml-1 text-emerald-700 hover:text-emerald-950 font-bold underline text-[10px] md:text-[11px] cursor-pointer inline-block"
       >
@@ -31,7 +59,6 @@ const ExpandableDescription = ({ text, renderCleanContent }) => {
   );
 };
 
-// Komponen File Attachment Card yang modern
 // Komponen File Attachment Card yang modern & responsif
 const FileAttachmentCard = ({ file }) => {
   const getFileFormat = (fileName = "") => {
@@ -166,8 +193,16 @@ export default function Page() {
       <>
         {parts.map((part, partIdx) => {
           if (part.match(/https?:\/\/[^\s]+/)) {
-            const cleanUrl = part.replace(/[\)\]\.,\s]+$/, '');
-            const urlTitle = cleanUrl.split('/').pop() || "Buka Tautan";
+
+let cleanUrl = part.replace(/[\)\]\.,\s]+$/, '');
+
+// Perbaiki tautan Google Drive yang salah
+if (cleanUrl === "https://drive.google.com/file/d/1_sbGOL/edit") {
+  cleanUrl = "https://drive.google.com/file/d/1_sbGOLnyqgny0cnCHGuVESnxA7shArAB/view";
+}
+
+const urlTitle = cleanUrl.split('/').pop() || "Buka Tautan";
+
             return (
               <span key={partIdx} className="inline-block mx-1">
                 <a

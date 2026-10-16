@@ -39,14 +39,13 @@ const initialKonten = {
   prosedur_isi: "",
 };
 
-// ✅ TAMBAHKAN FIELD POSISI DI SINI
 const initialInfoForm = {
   id: null,
   kategori: "Informasi Berkala",
   judul: "",
   deskripsi: "",
   tahun: new Date().getFullYear().toString(),
-  posisi: 1, // ✅ FIELD BARU
+  posisi: 1,
   status_publish: "Tampil",
   files: [],
   existingFiles: [],
@@ -54,8 +53,10 @@ const initialInfoForm = {
 
 const statusStyle = {
   Pending: "bg-slate-50 text-slate-700 ring-1 ring-slate-200",
+  Diverifikasi: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
   Diproses: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
   Selesai: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  Ditolak: "bg-red-50 text-red-700 ring-1 ring-red-200",
   default: "bg-slate-50 text-slate-600 ring-1 ring-slate-200",
 };
 
@@ -75,6 +76,8 @@ const normalizeStatus = (status) => {
   const value = String(status).toLowerCase();
   if (value === "selesai") return "Selesai";
   if (value === "diproses" || value === "proses") return "Diproses";
+  if (value === "diverifikasi") return "Diverifikasi";
+  if (value === "ditolak") return "Ditolak";
   if (value === "pending" || value === "menunggu") return "Pending";
   return status;
 };
@@ -186,7 +189,14 @@ const DashboardAdmin = () => {
   const [infoSearch, setInfoSearch] = useState("");
   const [infoForm, setInfoForm] = useState(initialInfoForm);
   const [showInfoForm, setShowInfoForm] = useState(false);
+  const [verifikasiForm, setVerifikasiForm] = useState({
+    status: "Pending",
+    nomor_pendaftaran: "",
+    alasan_penolakan: "",
+  });
   const [selectedSubmenuId, setSelectedSubmenuId] = useState(null);
+  const [users, setUsers] = useState([]);
+const [userSearch, setUserSearch] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -220,6 +230,15 @@ const DashboardAdmin = () => {
       setInformasiPublik([]);
     }
   }, []);
+  const fetchUsers = useCallback(async () => {
+  try {
+    const res = await api.get("/api/admin/users");
+    setUsers(Array.isArray(res.data) ? res.data : []);
+  } catch (err) {
+    console.error("Gagal memuat daftar pengguna", err);
+    setUsers([]);
+  }
+}, []);
 
   useEffect(() => {
     let user = null;
@@ -236,10 +255,11 @@ const DashboardAdmin = () => {
       navigate("/login");
       return;
     }
-    fetchData();
-    fetchBeranda();
-    fetchInformasiPublik();
-  }, [fetchData, fetchBeranda, fetchInformasiPublik, navigate]);
+   fetchData();
+fetchBeranda();
+fetchInformasiPublik();
+fetchUsers();
+  }, [fetchData, fetchBeranda, fetchInformasiPublik, fetchUsers, navigate]);
 
   const stats = useMemo(() => {
     const total = permohonan.length;
@@ -263,16 +283,21 @@ const DashboardAdmin = () => {
       const cocokStatus = statusFilter === "Semua" || itemStatus === statusFilter;
       const searchableText = [
         item.nama_lengkap,
+        item.nomor_ktp,
         item.nik,
         item.email,
+        item.email_pemohon,
         item.no_hp,
         item.subjek,
+        item.rincian_informasi,
         item.tujuan_informasi,
+        item.tujuan_penggunaan,
         item.status,
         item.estimasi,
         item.catatan_admin,
         item.catatan,
         item.berkas_balasan,
+        item.nomor_pendaftaran,
       ]
         .filter(Boolean)
         .join(" ")
@@ -282,7 +307,6 @@ const DashboardAdmin = () => {
     });
   }, [permohonan, query, statusFilter]);
 
-  // ✅ URUTKAN BERDASARKAN POSISI
   const filteredInformasi = useMemo(() => {
     const keyword = infoSearch.trim().toLowerCase();
     return informasiPublik
@@ -296,7 +320,6 @@ const DashboardAdmin = () => {
         return cocokKategori && (!keyword || text.includes(keyword));
       })
       .sort((a, b) => {
-        // ✅ Urutkan berdasarkan posisi
         const posA = Number(a.posisi || a.position || 999);
         const posB = Number(b.posisi || b.position || 999);
         return posA - posB;
@@ -308,6 +331,11 @@ const DashboardAdmin = () => {
     setIsEditMode(editMode);
     setPesanAdmin(data.pesan_admin || "");
     setTempFile(null);
+    setVerifikasiForm({
+      status: normalizeStatus(data.status),
+      nomor_pendaftaran: data.nomor_pendaftaran || "",
+      alasan_penolakan: data.alasan_penolakan || "",
+    });
   };
 
   const openProcessModal = (data) => {
@@ -345,7 +373,7 @@ const DashboardAdmin = () => {
       judul: getInfoTitle(item),
       deskripsi: getInfoDescription(item),
       tahun: item.tahun || "",
-      posisi: item.posisi || item.position || 1, // ✅ Ambil posisi dari data
+      posisi: item.posisi || item.position || 1,
       status_publish: item.status_publish || item.status || "Tampil",
       files: [],
       existingFiles: item.berkas_list || [],
@@ -381,7 +409,6 @@ const DashboardAdmin = () => {
     }
   };
 
-  // ✅ KIRIM POSISI KE BACKEND
   const handleSaveInformasi = async () => {
     if (!infoForm.judul.trim()) {
       alert("Nama/Judul dokumen wajib diisi.");
@@ -394,7 +421,7 @@ const DashboardAdmin = () => {
       formData.append("judul", infoForm.judul);
       formData.append("deskripsi", infoForm.deskripsi);
       formData.append("tahun", infoForm.tahun);
-      formData.append("posisi", infoForm.posisi || 1); // ✅ KIRIM POSISI
+      formData.append("posisi", infoForm.posisi || 1);
       formData.append("status_publish", infoForm.status_publish);
 
       Array.from(infoForm.files || []).forEach((file) => {
@@ -417,7 +444,7 @@ const DashboardAdmin = () => {
       fetchInformasiPublik();
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan informasi publik. Pastikan endpoint backend untuk informasi publik sudah dibuat.");
+      alert("Gagal menyimpan informasi publik.");
     } finally {
       setSavingInfo(false);
     }
@@ -459,6 +486,30 @@ const DashboardAdmin = () => {
     }
   };
 
+  const handleVerifikasi = async () => {
+    if (!selectedData) return;
+    if (verifikasiForm.status === "Ditolak" && !verifikasiForm.alasan_penolakan.trim()) {
+      alert("Alasan penolakan wajib diisi jika status Ditolak.");
+      return;
+    }
+    try {
+      setProcessing(true);
+      await api.put(`/api/admin/permohonan/${selectedData.id}/verifikasi`, {
+        status: verifikasiForm.status,
+        nomor_pendaftaran: verifikasiForm.nomor_pendaftaran,
+        alasan_penolakan: verifikasiForm.alasan_penolakan,
+      });
+      alert("Status dan nomor pendaftaran berhasil diperbarui!");
+      closeModal();
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Gagal memperbarui status");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const handleSimpanJawaban = async (id) => {
     if (!pesanAdmin.trim() && !tempFile) {
       alert("Isi pesan jawaban atau pilih berkas balasan terlebih dahulu.");
@@ -482,7 +533,7 @@ const DashboardAdmin = () => {
   };
 
   const handleHapusJawaban = async (id) => {
-    if (!window.confirm("Hapus jawaban dan berkas balasan admin? Status permohonan akan kembali ke Diproses dan tombol Tanggapi akan aktif lagi.")) return;
+    if (!window.confirm("Hapus jawaban dan berkas balasan admin?")) return;
     try {
       const formData = new FormData();
       formData.append("hapus_berkas", "true");
@@ -523,7 +574,7 @@ const DashboardAdmin = () => {
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-slate-200 text-2xl">📄</div>
           <h3 className="mt-4 text-lg font-black text-slate-900">Preview langsung belum tersedia</h3>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Format .{extension || "FILE"} biasanya tidak bisa ditampilkan langsung di browser. Gunakan tombol buka di tab baru untuk melihat file melalui browser.
+            Format .{extension || "FILE"} biasanya tidak bisa ditampilkan langsung di browser. Gunakan tombol buka di tab baru.
           </p>
           <a
             href={url}
@@ -564,7 +615,7 @@ const DashboardAdmin = () => {
       return (
         <button
           disabled
-          title="Permohonan selesai. Hapus jawaban terlebih dahulu jika ingin menanggapi ulang."
+          title="Permohonan selesai."
           className="cursor-not-allowed rounded-xl bg-slate-200 px-4 py-2 text-xs font-black uppercase text-slate-500 shadow-sm"
         >
           🔒 Terkunci
@@ -621,10 +672,18 @@ const DashboardAdmin = () => {
                 Atur Menu Website
               </button>
               <button
+  onClick={() => setView("pengguna")}
+  className={`rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wide transition ${
+    view === "pengguna" ? "bg-purple-700 text-white shadow-sm" : "text-slate-500 hover:bg-white hover:text-slate-900"
+  }`}
+>
+   Pengguna
+</button>
+              <button
                 onClick={() => navigate("/")}
                 className="rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wide bg-slate-900/10 text-slate-800 hover:bg-slate-900/25 transition flex items-center gap-1"
               >
-                <span>🏠</span> Kembali ke Beranda
+                <span></span> Kembali ke Beranda
               </button>
             </div>
           </div>
@@ -634,7 +693,7 @@ const DashboardAdmin = () => {
           <main className="space-y-6">
             <section className="grid gap-4 md:grid-cols-4">
               <StatCard label="Total" value={stats.total} helper="Semua data masuk" icon="📨" />
-              <StatCard label="Pending" value={stats.pending} helper="Menunggu diproses" icon="🕘" />
+              <StatCard label="Pending" value={stats.pending} helper="Menunggu diproses" icon="" />
               <StatCard label="Diproses" value={stats.diproses} helper="Siap ditanggapi" icon="⏳" />
               <StatCard label="Selesai" value={stats.selesai} helper="Sudah dijawab" icon="✅" />
             </section>
@@ -643,7 +702,7 @@ const DashboardAdmin = () => {
               <div className="flex flex-col gap-4 border-b border-slate-100 p-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-lg font-black text-slate-900">Daftar Permohonan</h2>
-                  <p className="text-sm text-slate-500">Pending diproses dulu dengan estimasi/catatan, baru bisa ditanggapi oleh admin.</p>
+                  <p className="text-sm text-slate-500">Kelola permohonan informasi publik masuk.</p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <div className="relative">
@@ -663,8 +722,10 @@ const DashboardAdmin = () => {
                   >
                     <option value="Semua">Semua Status</option>
                     <option value="Pending">Pending</option>
+                    <option value="Diverifikasi">Diverifikasi</option>
                     <option value="Diproses">Diproses</option>
                     <option value="Selesai">Selesai</option>
+                    <option value="Ditolak">Ditolak</option>
                   </select>
                   <button
                     onClick={fetchData}
@@ -694,10 +755,10 @@ const DashboardAdmin = () => {
                   <table className="w-full min-w-[1180px] text-left">
                     <thead>
                       <tr className="border-b border-slate-100 bg-slate-50 text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
-                        <th className="px-6 py-4">Pemohon</th>
-                        <th className="px-6 py-4">Subjek & Tujuan</th>
-                        <th className="px-6 py-4">Estimasi</th>
-                        <th className="px-6 py-4">Berkas Admin</th>
+                        <th className="px-6 py-4">Pemohon & KTP</th>
+                        <th className="px-6 py-4">Rincian Informasi</th>
+                        <th className="px-6 py-4">No. Pendaftaran</th>
+                        <th className="px-6 py-4">Dokumen Upload</th>
                         <th className="px-6 py-4 text-center">Status</th>
                         <th className="px-6 py-4 text-right">Aksi</th>
                       </tr>
@@ -708,39 +769,45 @@ const DashboardAdmin = () => {
                           <td className="px-6 py-5 align-top">
                             <button onClick={() => openDetail(item, false)} className="text-left">
                               <p className="font-black text-slate-900 group-hover:text-emerald-800">{item.nama_lengkap || "Tanpa nama"}</p>
-                              <p className="mt-1 text-xs font-semibold text-slate-400">NIK: {item.nik || "-"}</p>
+                              <p className="mt-1 text-xs font-semibold text-slate-400">KTP: {item.nomor_ktp || item.nik || "-"}</p>
                               <p className="mt-1 text-xs text-slate-400">{item.no_hp || "-"}</p>
                             </button>
                           </td>
                           <td className="px-6 py-5 align-top">
                             <button onClick={() => openDetail(item, false)} className="max-w-md text-left">
                               <p className="line-clamp-1 text-sm font-black text-emerald-700 underline-offset-4 group-hover:underline">
-                                {item.subjek || "Tanpa subjek"}
+                                {item.rincian_informasi || item.subjek || "Tanpa rincian"}
                               </p>
-                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{item.tujuan_informasi || "Tidak ada tujuan informasi"}</p>
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{item.tujuan_penggunaan || item.tujuan_informasi || "Tidak ada tujuan"}</p>
                             </button>
                           </td>
                           <td className="px-6 py-5 align-top">
-                            {item.estimasi ? (
-                              <div>
-                                <p className="text-xs font-black text-slate-800">{item.estimasi}</p>
-                                <p className="mt-1 line-clamp-2 max-w-[180px] text-[11px] leading-4 text-slate-400">
-                                  {item.catatan_admin || item.catatan || "Tidak ada catatan tambahan"}
-                                </p>
-                              </div>
+                            {item.nomor_pendaftaran ? (
+                              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
+                                {item.nomor_pendaftaran}
+                              </span>
                             ) : (
-                              <p className="text-xs font-semibold text-slate-300">Belum diisi</p>
+                              <span className="text-xs font-semibold text-slate-300">Belum ada</span>
                             )}
                           </td>
                           <td className="px-6 py-5 align-top">
-                            {item.berkas_balasan ? (
-                              <button onClick={() => openPreview(item.berkas_balasan, "Berkas Balasan Admin")} className="max-w-[210px] text-left">
-                                <p className="line-clamp-1 text-xs font-black text-blue-700 underline-offset-4 hover:underline">{item.berkas_balasan}</p>
-                                <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Klik untuk preview</p>
-                              </button>
-                            ) : (
-                              <p className="text-xs font-semibold text-slate-300">Belum ada berkas</p>
-                            )}
+                            <div className="flex flex-col gap-2">
+                              {item.file_ktp && (
+                                <button onClick={() => openPreview(item.file_ktp, "KTP/SIM/Paspor")} className="text-left">
+                                  <p className="line-clamp-1 text-xs font-black text-blue-700 underline-offset-4 hover:underline">{item.file_ktp}</p>
+                                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Klik untuk preview</p>
+                                </button>
+                              )}
+                              {item.file_foto && (
+                                <button onClick={() => openPreview(item.file_foto, "Foto Selfie")} className="text-left">
+                                  <p className="line-clamp-1 text-xs font-black text-purple-700 underline-offset-4 hover:underline">{item.file_foto}</p>
+                                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Klik untuk preview</p>
+                                </button>
+                              )}
+                              {!item.file_ktp && !item.file_foto && (
+                                <p className="text-xs font-semibold text-slate-300">Belum ada berkas</p>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-5 text-center align-top">
                             <StatusBadge status={item.status} />
@@ -748,12 +815,11 @@ const DashboardAdmin = () => {
                           <td className="px-6 py-5 text-right align-top">
                             <div className="flex justify-end gap-2">
                               <button
-                                onClick={() => openDetail(item, false)}
+                                onClick={() => openDetail(item, true)}
                                 className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black uppercase text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
                               >
-                                Detail
+                                Detail / Verifikasi
                               </button>
-                              {renderActionButton(item)}
                             </div>
                           </td>
                         </tr>
@@ -764,9 +830,119 @@ const DashboardAdmin = () => {
               )}
             </section>
           </main>
-        ) : view === "atur_menu" ? (
-          <MenuCmsAdmin />
-        ) : (
+      ) : view === "atur_menu" ? (
+  <MenuCmsAdmin />
+) : view === "pengguna" ? (
+  <main className="space-y-6">
+    <section className="rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-slate-100 p-5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-lg font-black text-slate-900">Daftar Pengguna Terdaftar</h2>
+          <p className="text-sm text-slate-500">Kelola akun pengguna yang sudah mendaftar di sistem.</p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+            <input
+              type="text"
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              placeholder="Cari nama, email, atau no HP..."
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm font-medium outline-none transition focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-100 sm:w-72"
+            />
+          </div>
+          <button
+            onClick={fetchUsers}
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-600 transition hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {users.length === 0 ? (
+        <div className="p-10 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-slate-100 text-2xl"></div>
+          <h3 className="mt-4 text-lg font-black text-slate-900">Belum ada pengguna</h3>
+          <p className="mt-1 text-sm text-slate-500">Pengguna yang mendaftar akan muncul di sini.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[800px] text-left">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50 text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                <th className="px-6 py-4">Nama</th>
+                <th className="px-6 py-4">Email</th>
+                <th className="px-6 py-4">No. HP</th>
+                <th className="px-6 py-4">Role</th>
+                <th className="px-6 py-4">Terdaftar</th>
+                <th className="px-6 py-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {users
+                .filter((u) => {
+                  const keyword = userSearch.toLowerCase();
+                  const text = `${u.nama_lengkap || ""} ${u.email || ""} ${u.no_hp || ""}`.toLowerCase();
+                  return !keyword || text.includes(keyword);
+                })
+                .map((u) => (
+                  <tr key={u.id} className="group transition hover:bg-purple-50/40">
+                    <td className="px-6 py-5">
+                      <p className="font-black text-slate-900">{u.nama_lengkap || "Tanpa nama"}</p>
+                    </td>
+                    <td className="px-6 py-5">
+                      <p className="text-sm text-slate-700">{u.email || "-"}</p>
+                    </td>
+                    <td className="px-6 py-5">
+                      <p className="text-sm text-slate-700">{u.no_hp || "-"}</p>
+                    </td>
+                    <td className="px-6 py-5">
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wide ${
+                          u.role === "admin"
+                            ? "bg-purple-100 text-purple-700 ring-1 ring-purple-200"
+                            : "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
+                        }`}
+                      >
+                        {u.role === "admin" ? "👑 Admin" : " User"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-5">
+                      <p className="text-xs text-slate-500">
+                        {u.created_at ? new Date(u.created_at).toLocaleDateString("id-ID") : "-"}
+                      </p>
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <div className="flex justify-end gap-2">
+                        {u.role !== "admin" && (
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm(`Hapus pengguna "${u.nama_lengkap}"?`)) return;
+                              try {
+                                await api.delete(`/api/admin/users/${u.id}`);
+                                alert("Pengguna berhasil dihapus");
+                                fetchUsers();
+                              } catch (err) {
+                                alert(err.response?.data?.message || "Gagal menghapus");
+                              }
+                            }}
+                            className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black uppercase text-red-600 transition hover:bg-red-50"
+                          >
+                            Hapus
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  </main>
+) : (
           <main className="space-y-6">
             {selectedSubmenuId && <ContentBuilder submenuId={selectedSubmenuId} />}
             <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
@@ -775,7 +951,7 @@ const DashboardAdmin = () => {
                   <p className="text-xs font-black uppercase tracking-[0.25em] text-emerald-700">Manajemen Halaman Utama</p>
                   <h2 className="mt-2 text-2xl font-black text-slate-950">Atur Semua Konten Beranda</h2>
                   <p className="mt-1 max-w-2xl text-sm text-slate-500">
-                    Admin dapat mengatur hero/banner, identitas kontak, dan daftar informasi publik yang tampil di halaman depan.
+                    Admin dapat mengatur hero/banner, identitas kontak, dan daftar informasi publik.
                   </p>
                 </div>
                 <div className="flex gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
@@ -915,12 +1091,7 @@ const DashboardAdmin = () => {
                       rows="8"
                       value={konten.prosedur_isi || ""}
                       onChange={(e) => setKonten({ ...konten, prosedur_isi: e.target.value })}
-                      placeholder={`Contoh:
-1. Pemohon melakukan login.
-2. Mengisi formulir permohonan informasi.
-3. Admin memproses permohonan.
-4. Admin memberikan jawaban atau dokumen.
-5. Pemohon dapat mengunduh hasil layanan.`}
+                      placeholder="1. Pemohon melakukan login.&#10;2. Mengisi formulir permohonan.&#10;3. Admin memproses.&#10;4. Admin memberikan jawaban."
                       className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </label>
@@ -1029,7 +1200,7 @@ const DashboardAdmin = () => {
                       <div>
                         <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">{kategoriAktif}</p>
                         <h3 className="mt-1 text-xl font-black text-slate-950">Daftar Data Informasi</h3>
-                        <p className="mt-1 text-xs text-slate-500">Data di bagian ini akan ditampilkan pada tabel Daftar Informasi Publik di halaman depan.</p>
+                        <p className="mt-1 text-xs text-slate-500">Data akan ditampilkan pada tabel Daftar Informasi Publik di halaman depan.</p>
                       </div>
                       <div className="flex flex-col gap-2 sm:flex-row">
                         <input
@@ -1143,13 +1314,14 @@ const DashboardAdmin = () => {
         )}
       </div>
 
+      {/* MODAL DETAIL PERMOHONAN */}
       {selectedData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
           <div className="relative max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] bg-white shadow-2xl">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/90 p-6 backdrop-blur">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-700">{isEditMode ? "Mode Tanggapan" : "Mode Detail"}</p>
-                <h2 className="mt-1 text-xl font-black text-slate-950">{isEditMode ? "Tanggapi Permohonan" : "Detail Permohonan"}</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-700">{isEditMode ? "Mode Verifikasi" : "Mode Detail"}</p>
+                <h2 className="mt-1 text-xl font-black text-slate-950">{isEditMode ? "Verifikasi Permohonan" : "Detail Permohonan"}</h2>
               </div>
               <button
                 onClick={closeModal}
@@ -1162,140 +1334,155 @@ const DashboardAdmin = () => {
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4">
                 <div>
                   <p className="text-sm font-black text-slate-900">{selectedData.nama_lengkap || "Tanpa nama"}</p>
-                  <p className="text-xs font-semibold text-slate-400">NIK: {selectedData.nik || "-"}</p>
+                  <p className="text-xs font-semibold text-slate-400">KTP: {selectedData.nomor_ktp || selectedData.nik || "-"}</p>
                 </div>
                 <StatusBadge status={selectedData.status} />
               </div>
+
+              {/* DATA FORMULIR PERMOHONAN */}
               <div className="grid gap-3 md:grid-cols-2">
+                <FieldCard label="Nomor KTP">
+                  <p className="font-bold text-slate-800">{selectedData.nomor_ktp || selectedData.nik || "-"}</p>
+                </FieldCard>
                 <FieldCard label="Kontak Pemohon">
                   <p className="font-bold text-slate-800">{selectedData.no_hp || "-"}</p>
-                  <p className="mt-1 text-xs text-slate-500">{selectedData.email || "-"}</p>
+                  <p className="mt-1 text-xs text-slate-500">{selectedData.email_pemohon || selectedData.email || "-"}</p>
                 </FieldCard>
-                <FieldCard label="Subjek">
-                  <p className="font-bold text-slate-800">{selectedData.subjek || "-"}</p>
+                <FieldCard label="Alamat Lengkap">
+                  <p className="leading-6 text-slate-600">{selectedData.alamat || "-"}</p>
+                </FieldCard>
+                <FieldCard label="Pekerjaan">
+                  <p className="font-bold text-slate-800">{selectedData.pekerjaan || "-"}</p>
                 </FieldCard>
                 <div className="md:col-span-2">
-                  <FieldCard label="Tujuan Informasi">
-                    <p className="leading-6 text-slate-600">{selectedData.tujuan_informasi || "-"}</p>
+                  <FieldCard label="Rincian Informasi yang Dimohonkan">
+                    <p className="leading-6 text-slate-600">{selectedData.rincian_informasi || selectedData.subjek || "-"}</p>
                   </FieldCard>
                 </div>
-                <FieldCard label="Estimasi Waktu / Tanggal Estimasi">
-                  <p className="font-bold text-slate-800">{selectedData.estimasi || "Belum diisi"}</p>
-                </FieldCard>
-                <FieldCard label="Catatan Proses Admin">
-                  <p className="leading-6 text-slate-600">{selectedData.catatan_admin || selectedData.catatan || "Belum ada catatan"}</p>
-                </FieldCard>
+                <div className="md:col-span-2">
+                  <FieldCard label="Tujuan Penggunaan Informasi">
+                    <p className="leading-6 text-slate-600">{selectedData.tujuan_penggunaan || selectedData.tujuan_informasi || "-"}</p>
+                  </FieldCard>
+                </div>
               </div>
+
+              {/* PREVIEW DOKUMEN UPLOAD */}
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-center">
-                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-blue-400">Berkas Pemohon</p>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-blue-400">KTP / SIM / Paspor</p>
                   <FilePreviewButton
-                    fileName={selectedData.berkas_permohonan}
-                    label="Berkas Permohonan Pemohon"
+                    fileName={selectedData.file_ktp}
+                    label="KTP/SIM/Paspor"
                     onPreview={openPreview}
-                    emptyText="Tidak ada berkas pemohon"
+                    emptyText="Tidak ada berkas"
                   />
                 </div>
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-center">
-                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-500">Berkas Balasan Admin</p>
+                <div className="rounded-2xl border border-purple-100 bg-purple-50 p-4 text-center">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-purple-400">Foto Selfie</p>
                   <FilePreviewButton
-                    fileName={selectedData.berkas_balasan}
-                    label="Berkas Balasan Admin"
+                    fileName={selectedData.file_foto}
+                    label="Foto Selfie"
                     onPreview={openPreview}
-                    emptyText="Belum ada berkas balasan admin"
+                    emptyText="Tidak ada berkas"
                   />
                 </div>
               </div>
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <label className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Pesan Jawaban Admin</label>
-                <textarea
-                  className={`w-full resize-none rounded-2xl border p-4 text-sm leading-6 outline-none transition ${
-                    isEditMode
-                      ? "border-slate-200 bg-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
-                      : "border-transparent bg-transparent text-slate-500"
-                  }`}
-                  rows="5"
-                  value={pesanAdmin}
-                  onChange={(e) => setPesanAdmin(e.target.value)}
-                  readOnly={!isEditMode}
-                  placeholder="Belum ada jawaban admin..."
-                />
-              </div>
+
+              {/* FORM VERIFIKASI */}
               {isEditMode ? (
-                <div className="space-y-4">
-                  <label className="block rounded-3xl border-2 border-dashed border-slate-200 bg-white p-5 text-center transition hover:border-emerald-300 hover:bg-emerald-50/40">
-                    <span className="block text-sm font-black text-slate-800">Unggah berkas balasan admin</span>
-                    <span className="mt-1 block text-xs text-slate-400">PDF/gambar/dokumen pendukung jawaban permohonan</span>
-                    <input
-                      type="file"
-                      onChange={(e) => setTempFile(e.target.files?.[0] || null)}
-                      className="mt-4 text-xs font-bold text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-xs file:font-black file:uppercase file:text-white"
-                    />
-                    {tempFile && <p className="mt-3 text-xs font-bold text-emerald-700">File dipilih: {tempFile.name}</p>}
+                <div className="space-y-4 rounded-3xl border border-emerald-200 bg-emerald-50/50 p-5">
+                  <h4 className="text-sm font-black uppercase tracking-wide text-emerald-800">Form Verifikasi & Tindak Lanjut</h4>
+                  
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Status Permohonan</span>
+                    <select
+                      value={verifikasiForm.status}
+                      onChange={(e) => setVerifikasiForm({ ...verifikasiForm, status: e.target.value })}
+                      className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm font-bold outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Diverifikasi">Diverifikasi</option>
+                      <option value="Diproses">Diproses</option>
+                      <option value="Selesai">Selesai</option>
+                      <option value="Ditolak">Ditolak</option>
+                    </select>
                   </label>
-                  <div className="flex flex-col gap-3 sm:flex-row">
+
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Nomor Pendaftaran</span>
+                    <input
+                      type="text"
+                      value={verifikasiForm.nomor_pendaftaran}
+                      onChange={(e) => setVerifikasiForm({ ...verifikasiForm, nomor_pendaftaran: e.target.value })}
+                      placeholder="Contoh: 001/PPID/MAN2PLG/PIP/10/2026"
+                      className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    />
+                  </label>
+
+                  {verifikasiForm.status === "Ditolak" && (
+                    <label className="block">
+                      <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Alasan Penolakan</span>
+                      <textarea
+                        value={verifikasiForm.alasan_penolakan}
+                        onChange={(e) => setVerifikasiForm({ ...verifikasiForm, alasan_penolakan: e.target.value })}
+                        rows="3"
+                        placeholder="Jelaskan alasan penolakan..."
+                        className="w-full resize-none rounded-2xl border border-slate-200 bg-white p-4 text-sm font-medium leading-6 outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                      />
+                    </label>
+                  )}
+
+                  <div className="flex flex-col gap-3 sm:flex-row pt-2">
                     <button
-                      onClick={() => handleSimpanJawaban(selectedData.id)}
-                      disabled={uploading}
+                      onClick={handleVerifikasi}
+                      disabled={processing}
                       className="flex-1 rounded-2xl bg-emerald-700 py-4 text-sm font-black uppercase text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
                     >
-                      {uploading ? "Mengunggah..." : "Simpan & Kirim Tanggapan"}
+                      {processing ? "Menyimpan..." : "Simpan Verifikasi"}
                     </button>
-                    {(selectedStatus === "Selesai" || selectedData.pesan_admin || selectedData.berkas_balasan) && (
-                      <button
-                        onClick={() => handleHapusJawaban(selectedData.id)}
-                        className="rounded-2xl border border-red-200 px-5 py-4 text-xs font-black uppercase text-red-600 transition hover:bg-red-50"
-                      >
-                        Hapus Jawaban & Berkas
-                      </button>
-                    )}
+                    <button
+                      onClick={closeModal}
+                      className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-black uppercase text-slate-500 transition hover:bg-slate-50"
+                    >
+                      Batal
+                    </button>
                   </div>
                 </div>
-              ) : selectedStatus === "Pending" ? (
-                <button
-                  onClick={() => openProcessModal(selectedData)}
-                  className="w-full rounded-2xl bg-amber-600 py-4 text-sm font-black uppercase text-white shadow-lg transition hover:bg-amber-700"
-                >
-                  Proses Permohonan Ini
-                </button>
-              ) : selectedStatus === "Diproses" ? (
-                <button
-                  onClick={() => setIsEditMode(true)}
-                  className="w-full rounded-2xl bg-emerald-700 py-4 text-sm font-black uppercase text-white shadow-lg transition hover:bg-emerald-800"
-                >
-                  Tanggapi Permohonan Ini
-                </button>
-              ) : selectedStatus === "Selesai" ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className="rounded-2xl bg-slate-900 py-4 text-sm font-black uppercase text-white shadow-lg transition hover:bg-emerald-800"
-                  >
-                    Update Balasan
-                  </button>
-                  <button
-                    onClick={() => handleHapusJawaban(selectedData.id)}
-                    className="rounded-2xl border border-red-200 bg-white py-4 text-sm font-black uppercase text-red-600 transition hover:bg-red-50"
-                  >
-                    Hapus Jawaban & Berkas
-                  </button>
-                  <p className="sm:col-span-2 rounded-2xl bg-slate-50 p-3 text-center text-xs font-semibold text-slate-500">
-                    Status selesai membuat tombol Tanggapi di daftar terkunci. Hapus jawaban dan berkas jika ingin menanggapi ulang.
-                  </p>
-                </div>
               ) : (
-                <button
-                  onClick={() => openProcessModal(selectedData)}
-                  className="w-full rounded-2xl bg-amber-600 py-4 text-sm font-black uppercase text-white shadow-lg transition hover:bg-amber-700"
-                >
-                  Proses Permohonan Ini
-                </button>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  {selectedStatus === "Pending" && (
+                    <button
+                      onClick={() => {
+                        setIsEditMode(true);
+                        setVerifikasiForm({ ...verifikasiForm, status: "Diverifikasi" });
+                      }}
+                      className="flex-1 rounded-2xl bg-amber-600 py-4 text-sm font-black uppercase text-white shadow-lg transition hover:bg-amber-700"
+                    >
+                      Verifikasi & Proses
+                    </button>
+                  )}
+                  {selectedStatus !== "Pending" && (
+                    <button
+                      onClick={() => setIsEditMode(true)}
+                      className="flex-1 rounded-2xl bg-emerald-700 py-4 text-sm font-black uppercase text-white shadow-lg transition hover:bg-emerald-800"
+                    >
+                      Edit / Tindak Lanjuti
+                    </button>
+                  )}
+                  <button
+                    onClick={closeModal}
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-black uppercase text-slate-500 transition hover:bg-slate-50"
+                  >
+                    Tutup
+                  </button>
+                </div>
               )}
             </div>
           </div>
         </div>
       )}
 
+      {/* MODAL PROSES */}
       {processData && (
         <div className="fixed inset-0 z-[55] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
           <div className="w-full max-w-xl rounded-[2rem] bg-white p-6 shadow-2xl">
@@ -1303,7 +1490,7 @@ const DashboardAdmin = () => {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600">Proses Permohonan</p>
                 <h3 className="mt-1 text-xl font-black text-slate-950">Isi Estimasi & Catatan Admin</h3>
-                <p className="mt-1 text-sm text-slate-500">Setelah disimpan, status berubah dari Pending menjadi Diproses dan tombol akan berubah menjadi Tanggapi.</p>
+                <p className="mt-1 text-sm text-slate-500">Setelah disimpan, status berubah dari Pending menjadi Diproses.</p>
               </div>
               <button
                 onClick={closeProcessModal}
@@ -1318,7 +1505,7 @@ const DashboardAdmin = () => {
             </div>
             <div className="space-y-4">
               <label className="block">
-                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Estimasi Waktu / Tanggal Estimasi</span>
+                <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Estimasi Waktu</span>
                 <input
                   type="text"
                   value={estimasiProses}
@@ -1333,7 +1520,7 @@ const DashboardAdmin = () => {
                   value={catatanProses}
                   onChange={(e) => setCatatanProses(e.target.value)}
                   rows="4"
-                  placeholder="Contoh: Permohonan sedang diverifikasi oleh admin. Mohon menunggu sesuai estimasi."
+                  placeholder="Contoh: Permohonan sedang diverifikasi."
                   className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100"
                 />
               </label>
@@ -1357,6 +1544,7 @@ const DashboardAdmin = () => {
         </div>
       )}
 
+      {/* MODAL INFO FORM */}
       {showInfoForm && (
         <div className="fixed inset-0 z-[56] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
@@ -1364,7 +1552,7 @@ const DashboardAdmin = () => {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-700">Informasi Publik</p>
                 <h3 className="mt-1 text-xl font-black text-slate-950">{infoForm.id ? "Edit Data Informasi" : "Tambah Data Informasi"}</h3>
-                <p className="mt-1 text-sm text-slate-500">Input data dan upload satu atau banyak berkas untuk ditampilkan di halaman depan.</p>
+                <p className="mt-1 text-sm text-slate-500">Input data dan upload berkas untuk ditampilkan di halaman depan.</p>
               </div>
               <button
                 onClick={closeInfoForm}
@@ -1389,7 +1577,6 @@ const DashboardAdmin = () => {
                 </select>
               </label>
 
-              {/* ✅ INPUT URUTAN/POSISI */}
               <label>
                 <span className="mb-2 block text-xs font-black uppercase tracking-wide text-slate-500">Urutan / Posisi Tampil</span>
                 <input
@@ -1443,7 +1630,7 @@ const DashboardAdmin = () => {
                   value={infoForm.deskripsi}
                   onChange={(e) => setInfoForm((prev) => ({ ...prev, deskripsi: e.target.value }))}
                   rows="4"
-                  placeholder="Keterangan singkat dokumen agar mudah dipahami pengunjung."
+                  placeholder="Keterangan singkat dokumen."
                   className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-6 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                 />
               </label>
@@ -1457,7 +1644,7 @@ const DashboardAdmin = () => {
                         key={file.id}
                         className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
                       >
-                        <span className="truncate text-sm"> {file.nama_asli}</span>
+                        <span className="truncate text-sm">{file.nama_asli}</span>
                         <button
                           type="button"
                           onClick={() => handleDeleteExistingFile(file.id)}
@@ -1473,7 +1660,7 @@ const DashboardAdmin = () => {
 
               <label className="md:col-span-2 block rounded-3xl border-2 border-dashed border-slate-200 bg-white p-5 text-center transition hover:border-emerald-300 hover:bg-emerald-50/40">
                 <span className="block text-sm font-black text-slate-800">Upload Berkas</span>
-                <span className="mt-1 block text-xs text-slate-400">Bisa pilih banyak file sekaligus. PDF, Word, Excel, gambar, dan dokumen lain.</span>
+                <span className="mt-1 block text-xs text-slate-400">Bisa pilih banyak file sekaligus.</span>
                 <input
                   type="file"
                   multiple
@@ -1503,6 +1690,7 @@ const DashboardAdmin = () => {
         </div>
       )}
 
+      {/* MODAL PREVIEW */}
       {previewFile && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-5xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">

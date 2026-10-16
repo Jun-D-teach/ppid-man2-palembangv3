@@ -883,7 +883,202 @@ app.put(
     res.json({ message: "Jawaban admin berhasil dikirim" });
   }),
 );
+/* =========================
+   PERMOHONAN INFORMASI - UPDATE LENGKAP
+========================= */
 
+// Submit Permohonan dengan Data Lengkap + Upload File
+app.post(
+  "/api/permohonan",
+  requireAuth,
+  upload.fields([
+    { name: "file_ktp", maxCount: 1 },
+    { name: "file_foto", maxCount: 1 },
+  ]),
+  asyncHandler(async (req, res) => {
+    const {
+      nama_lengkap,
+      nomor_ktp,
+      alamat,
+      pekerjaan,
+      no_hp,
+      email_pemohon,
+      rincian_informasi,
+      tujuan_penggunaan,
+      cara_memperoleh,
+      cara_salinan,
+      pernyataan_disetujui,
+    } = req.body;
+
+    // Validasi field wajib
+    const requiredFields = {
+      nama_lengkap,
+      nomor_ktp,
+      alamat,
+      rincian_informasi,
+      tujuan_penggunaan,
+      cara_memperoleh,
+      cara_salinan,
+    };
+
+    for (const [field, value] of Object.entries(requiredFields)) {
+      if (!value || !String(value).trim()) {
+        return res.status(400).json({
+          message: `Field ${field.replace(/_/g, " ")} wajib diisi`,
+        });
+      }
+    }
+
+    if (!pernyataan_disetujui || pernyataan_disetujui !== "true") {
+      return res.status(400).json({
+        message: "Anda harus menyetujui pernyataan kebenaran data",
+      });
+    }
+
+    // Validasi upload file
+    if (!req.files?.file_ktp?.[0]) {
+      return res.status(400).json({
+        message: "Upload KTP/SIM/Paspor wajib dilakukan",
+      });
+    }
+
+    if (!req.files?.file_foto?.[0]) {
+      return res.status(400).json({
+        message: "Upload foto selfie wajib dilakukan",
+      });
+    }
+
+    const fileKtp = req.files.file_ktp[0];
+    const fileFoto = req.files.file_foto[0];
+
+    // Generate nomor pendaftaran otomatis
+    const now = new Date();
+    const bulan = String(now.getMonth() + 1).padStart(2, "0");
+    const tahun = now.getFullYear();
+    const random = String(Math.floor(Math.random() * 999) + 1).padStart(3, "0");
+    const nomorPendaftaran = `${random}/PPID/MAN2PLG/PIP/${bulan}/${tahun}`;
+
+    const [result] = await db.query(
+      `
+      INSERT INTO permohonan
+      (user_id, nama_lengkap, nomor_ktp, alamat, pekerjaan, no_hp, email_pemohon,
+       rincian_informasi, tujuan_penggunaan, cara_memperoleh, cara_salinan,
+       file_ktp, file_foto, nomor_pendaftaran, pernyataan_disetujui, status, tanggal_pengajuan)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'Pending', NOW())
+    `,
+      [
+        req.user.id,
+        nama_lengkap.trim(),
+        nomor_ktp.trim(),
+        alamat.trim(),
+        pekerjaan?.trim() || "",
+        no_hp?.trim() || "",
+        email_pemohon?.trim() || req.user.email,
+        rincian_informasi.trim(),
+        tujuan_penggunaan.trim(),
+        cara_memperoleh,
+        cara_salinan,
+        fileKtp.filename,
+        fileFoto.filename,
+        nomorPendaftaran,
+      ]
+    );
+
+    res.status(201).json({
+      message: "Permohonan berhasil dikirim",
+      id: result.insertId,
+      nomor_pendaftaran: nomorPendaftaran,
+    });
+  })
+);
+
+// Get Detail Permohonan (untuk cetak PDF)
+app.get(
+  "/api/permohonan/:id/detail",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    
+    const [rows] = await db.query(
+      `
+      SELECT p.*, u.nama_lengkap as user_nama, u.email as user_email
+      FROM permohonan p
+      LEFT JOIN users u ON p.user_id = u.id
+      WHERE p.id = ? AND (p.user_id = ? OR ? = 'admin')
+      LIMIT 1
+    `,
+      [id, req.user.id, req.user.role || ""]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Permohonan tidak ditemukan" });
+    }
+
+    res.json(rows[0]);
+  })
+);
+
+// Admin: Verifikasi Permohonan
+app.put(
+  "/api/admin/permohonan/:id/verifikasi",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status, nomor_pendaftaran, alasan_penolakan } = req.body;
+
+    const validStatus = ["Diverifikasi", "Diproses", "Selesai", "Ditolak"];
+    if (!validStatus.includes(status)) {
+      return res.status(400).json({ message: "Status tidak valid" });
+    }
+
+    await db.query(
+      `
+      UPDATE permohonan 
+      SET status = ?, 
+          nomor_pendaftaran = COALESCE(?, nomor_pendaftaran),
+          alasan_penolakan = ?,
+          tanggal_pengajuan = COALESCE(tanggal_pengajuan, NOW())
+      WHERE id = ?
+    `,
+      [status, nomor_pendaftaran || null, alasan_penolakan || null, id]
+    );
+
+    res.json({ message: "Status permohonan berhasil diperbarui" });
+  })
+);
+
+// Admin: Get Semua Permohonan (dengan filter)
+app.get(
+  "/api/admin/permohonan",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { status, search } = req.query;
+    
+    let query = `
+      SELECT p.*, u.nama_lengkap as user_nama, u.email as user_email
+      FROM permohonan p
+      LEFT JOIN users u ON p.user_id = u.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (status) {
+      query += " AND p.status = ?";
+      params.push(status);
+    }
+
+    if (search) {
+      query += " AND (p.nama_lengkap LIKE ? OR p.nomor_pendaftaran LIKE ? OR p.nomor_ktp LIKE ?)";
+      const searchParam = `%${search}%`;
+      params.push(searchParam, searchParam, searchParam);
+    }
+
+    query += " ORDER BY p.tanggal_pengajuan DESC";
+
+    const [rows] = await db.query(query, params);
+    res.json(rows);
+  })
+);
 app.get("/api/submenu/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
@@ -1644,7 +1839,57 @@ app.put(
     res.json({ message: "Password berhasil diubah" });
   }),
 );
+/* =========================
+   ADMIN: KELOLA PENGGUNA (USERS)
+   (Diletakkan SEBELUM middleware catch-all /api)
+========================= */
 
+// GET: Ambil semua pengguna
+app.get(
+  "/api/admin/users",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const [rows] = await db.query(
+      `SELECT id, nama_lengkap, nik, no_hp, email, role, created_at 
+       FROM users 
+       ORDER BY created_at DESC`
+    );
+    res.json(rows);
+  })
+);
+
+// DELETE: Hapus pengguna (tidak bisa hapus admin)
+app.delete(
+  "/api/admin/users/:id",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const [user] = await db.query("SELECT role FROM users WHERE id = ?", [id]);
+    if (user.length === 0) {
+      return res.status(404).json({ message: "User tidak ditemukan" });
+    }
+    if (user[0].role === "admin") {
+      return res.status(403).json({ message: "Tidak bisa menghapus akun admin" });
+    }
+    await db.query("DELETE FROM users WHERE id = ?", [id]);
+    res.json({ message: "Pengguna berhasil dihapus" });
+  })
+);
+
+// PUT: Ubah role pengguna (admin/user)
+app.put(
+  "/api/admin/users/:id/role",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+    if (!["admin", "user"].includes(role)) {
+      return res.status(400).json({ message: "Role tidak valid" });
+    }
+    await db.query("UPDATE users SET role = ? WHERE id = ?", [role, id]);
+    res.json({ message: "Role pengguna berhasil diperbarui" });
+  })
+);
 /* =========================
    FRONTEND VITE MIDDLEWARE & STATIC SERVING
 ========================= */

@@ -8,6 +8,8 @@ import DashboardUser from "./pages/DashboardUser";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import AccessibilityWidget from "./components/AccessibilityWidget";
 import Page from "./pages/page";
+import FormPermohonan from "./pages/FormPermohonan";
+
 
 // ==========================================
 // 1. KOMPONEN NAVBAR ATAS (RESPONSIVE - FIXED MOBILE)
@@ -418,6 +420,7 @@ function App() {
             <Route path="/permohonan-baru" element={<DashboardUser />} />
             <Route path="/admin-ppid-man2" element={<DashboardAdmin />} />
             <Route path="/page/:slug" element={<Page />} />
+            <Route path="/form-permohonan" element={<FormPermohonan />} />
           </Routes>
         </main>
 
