@@ -13,18 +13,17 @@ export default defineConfig(() => {
     },
     server: {
       // Menambahkan proxy agar frontend di port 5173 bisa berkomunikasi dengan backend di port 3000
-      proxy: {
-        '/api': {
-          target: 'http://localhost:3000',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/uploads': {
-          target: 'http://localhost:3000',
-          changeOrigin: true,
-          secure: false,
-        },
+       proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
       },
+      // ✅ TAMBAHKAN BAGIAN INI
+      '/uploads': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

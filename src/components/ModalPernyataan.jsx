@@ -1,3 +1,4 @@
+import { useState } from "react";
 export default function ModalPernyataan({ formData, previewFiles, onConfirm, onCancel, loading }) {
   const [checked, setChecked] = useState(false);
 
