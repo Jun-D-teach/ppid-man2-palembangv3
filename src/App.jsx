@@ -421,6 +421,8 @@ function App() {
             <Route path="/admin-ppid-man2" element={<DashboardAdmin />} />
             <Route path="/page/:slug" element={<Page />} />
             <Route path="/form-permohonan" element={<FormPermohonan />} />
+            <Route path="/permohonan-baru" element={<DashboardUser />} />
+<Route path="/dashboard-user" element={<DashboardUser />} />
           </Routes>
         </main>
 

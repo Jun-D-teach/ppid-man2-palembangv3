@@ -731,39 +731,6 @@ app.delete(
     res.json({ message: "Berkas berhasil dihapus" });
   }),
 );
-/* =========================
-   PERMOHONAN INFORMASI
-========================= */
-
-app.post(
-  "/api/permohonan",
-  requireAuth,
-  asyncHandler(async (req, res) => {
-    const { user_id, subjek, tujuan_informasi, cara_memperoleh } = req.body;
-    const pemohonId =
-      req.user.role === "admin" && user_id ? user_id : req.user.id;
-
-    if (!pemohonId || !subjek || !tujuan_informasi) {
-      return res.status(400).json({
-        message: "User, subjek, dan tujuan informasi wajib diisi",
-      });
-    }
-
-    const [result] = await db.query(
-      `
-      INSERT INTO permohonan
-      (user_id, subjek, tujuan_informasi, cara_memperoleh, status)
-      VALUES (?, ?, ?, ?, 'Pending')
-    `,
-      [pemohonId, subjek, tujuan_informasi, cara_memperoleh || "Email"],
-    );
-
-    res
-      .status(201)
-      .json({ message: "Permohonan berhasil dikirim", id: result.insertId });
-  }),
-);
-
 app.get(
   "/api/permohonan/:user_id",
   requireOwnerOrAdmin,

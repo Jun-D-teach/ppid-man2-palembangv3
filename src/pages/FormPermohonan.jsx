@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, getUploadUrl } from "../api";
-import ModalPernyataan from "../components/ModalPernyataan";
+import { api } from "../api";
+import  ModalPernyataan from "../components/ModalPernyataan";
 
 export default function FormPermohonan() {
   const navigate = useNavigate();
@@ -129,38 +129,39 @@ export default function FormPermohonan() {
   };
 
   const handleConfirmSubmit = async () => {
-    setLoading(true);
-    try {
-      const formDataToSend = new FormData();
-      
-      Object.keys(formData).forEach((key) => {
-        if (formData[key] !== null && formData[key] !== undefined) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+  setLoading(true);
+  try {
+    const formDataToSend = new FormData();
+    
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] !== null && formData[key] !== undefined) {
+        formDataToSend.append(key, formData[key]);
+      }
+    });
 
-      const response = await api.post("/api/permohonan", formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    // ✅ PENTING: Pastikan ini string "true"
+    formDataToSend.append("pernyataan_disetujui", "true");
 
-      alert(
-        `Permohonan berhasil dikirim!\n\nNomor Pendaftaran: ${response.data.nomor_pendaftaran}\n\nSilakan simpan nomor ini untuk tracking status.`
-      );
-      
-      navigate("/dashboard-user");
-    } catch (error) {
-      alert(error.response?.data?.message || "Gagal mengirim permohonan");
-    } finally {
-      setLoading(false);
-      setShowModal(false);
-    }
-  };
+    const response = await api.post("/api/permohonan", formDataToSend, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-  const handlePrint = () => {
-    window.print();
-  };
+    alert(
+      `Permohonan berhasil dikirim!\n\nNomor Pendaftaran: ${response.data.nomor_pendaftaran}\n\nSilakan simpan nomor ini untuk tracking status.`
+    );
+    
+    // ✅ Gunakan route yang benar
+    navigate("/permohonan-baru");
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert(error.response?.data?.message || "Gagal mengirim permohonan");
+  } finally {
+    setLoading(false);
+    setShowModal(false);
+  }
+};
 
   if (!user) {
     return (
@@ -257,7 +258,7 @@ export default function FormPermohonan() {
           {/* Detail Permohonan */}
           <section>
             <h2 className="text-lg font-black text-emerald-900 uppercase tracking-tight border-b-2 border-emerald-100 pb-2 mb-4">
-              📄 Detail Permohonan
+               Detail Permohonan
             </h2>
             <div className="space-y-4">
               <TextAreaField
@@ -284,7 +285,7 @@ export default function FormPermohonan() {
           {/* Cara Memperoleh */}
           <section>
             <h2 className="text-lg font-black text-emerald-900 uppercase tracking-tight border-b-2 border-emerald-100 pb-2 mb-4">
-               Cara Memperoleh Informasi
+              📮 Cara Memperoleh Informasi
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RadioGroup
@@ -346,54 +347,31 @@ export default function FormPermohonan() {
           <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-200">
             <button
               type="button"
-              onClick={handlePrint}
-              className="flex-1 bg-slate-100 text-slate-800 py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-slate-200 transition flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Cetak Formulir
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmitClick}
-              disabled={loading}
-              className="flex-1 bg-emerald-700 text-white py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  Mengirim...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                  Kirim Permohonan
-                </>
-              )}
-            </button>
-            <button
-              type="button"
               onClick={() => navigate("/dashboard-user")}
               className="flex-1 bg-white border-2 border-emerald-700 text-emerald-700 py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-50 transition"
             >
               Batal
             </button>
+            <button
+              type="button"
+              onClick={handleSubmitClick}
+              disabled={loading}
+              className="flex-1 bg-emerald-700 text-white py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Mengirim..." : "Kirim Permohonan"}
+            </button>
           </div>
         </form>
 
-        {/* Modal Pernyataan */}
-        {showModal && (
-          <ModalPernyataan
-            formData={formData}
-            previewFiles={previewFiles}
-            onConfirm={handleConfirmSubmit}
-            onCancel={() => setShowModal(false)}
-            loading={loading}
-          />
-        )}
+       {showModal && (
+  <ModalPernyataan
+    formData={formData}
+    previewFiles={previewFiles}
+    onConfirm={handleConfirmSubmit}
+    onCancel={() => setShowModal(false)}
+    loading={loading}
+  />
+)}
       </div>
     </div>
   );
@@ -516,3 +494,4 @@ function FileUploadField({ label, name, onChange, error, preview, accept }) {
     </div>
   );
 }
+

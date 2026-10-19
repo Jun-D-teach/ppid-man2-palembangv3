@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 export default function ModalPernyataan({ formData, previewFiles, onConfirm, onCancel, loading }) {
   const [checked, setChecked] = useState(false);
 
@@ -9,7 +10,7 @@ export default function ModalPernyataan({ formData, previewFiles, onConfirm, onC
         <div className="bg-gradient-to-br from-emerald-900 to-emerald-800 p-6 rounded-t-2xl text-white">
           <div className="flex items-center gap-3">
             <div className="grid h-12 w-12 place-items-center rounded-full bg-white/20 text-2xl">
-              ️
+              ⚠️
             </div>
             <div>
               <h3 className="text-lg font-black uppercase tracking-tight">
@@ -24,12 +25,12 @@ export default function ModalPernyataan({ formData, previewFiles, onConfirm, onC
 
         {/* Content */}
         <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-          {/* Preview Data */}
+          {/* ✅ RINGKASAN DATA PEMOHON - DILENGKAPI SEMUA FIELD */}
           <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
             <h4 className="text-xs font-black text-emerald-900 uppercase mb-3">
-               Ringkasan Data Pemohon
+              📋 Ringkasan Data Pemohon
             </h4>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <span className="text-slate-500">Nama:</span>
                 <p className="font-bold text-slate-800">{formData.nama_lengkap}</p>
@@ -38,9 +39,39 @@ export default function ModalPernyataan({ formData, previewFiles, onConfirm, onC
                 <span className="text-slate-500">No. KTP:</span>
                 <p className="font-bold text-slate-800">{formData.nomor_ktp}</p>
               </div>
+              <div>
+                <span className="text-slate-500">No. HP:</span>
+                <p className="font-bold text-slate-800">{formData.no_hp || "-"}</p>
+              </div>
+              <div>
+                <span className="text-slate-500">Email:</span>
+                <p className="font-bold text-slate-800">{formData.email_pemohon}</p>
+              </div>
               <div className="col-span-2">
                 <span className="text-slate-500">Alamat:</span>
                 <p className="font-bold text-slate-800">{formData.alamat}</p>
+              </div>
+              {formData.pekerjaan && (
+                <div className="col-span-2">
+                  <span className="text-slate-500">Pekerjaan:</span>
+                  <p className="font-bold text-slate-800">{formData.pekerjaan}</p>
+                </div>
+              )}
+              <div className="col-span-2">
+                <span className="text-slate-500">Rincian Informasi:</span>
+                <p className="font-bold text-slate-800 mt-1 whitespace-pre-wrap">{formData.rincian_informasi}</p>
+              </div>
+              <div className="col-span-2">
+                <span className="text-slate-500">Tujuan Penggunaan:</span>
+                <p className="font-bold text-slate-800 mt-1 whitespace-pre-wrap">{formData.tujuan_penggunaan}</p>
+              </div>
+              <div>
+                <span className="text-slate-500">Cara Memperoleh:</span>
+                <p className="font-bold text-slate-800">{formData.cara_memperoleh || "-"}</p>
+              </div>
+              <div>
+                <span className="text-slate-500">Cara Salinan:</span>
+                <p className="font-bold text-slate-800">{formData.cara_salinan || "-"}</p>
               </div>
             </div>
           </div>
@@ -108,20 +139,23 @@ export default function ModalPernyataan({ formData, previewFiles, onConfirm, onC
             </ul>
           </div>
 
-          {/* Checkbox */}
-          <label className="flex items-start gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition">
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
-              className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 mt-0.5"
-            />
-            <span className="text-xs text-slate-700 leading-relaxed">
-              Saya menyatakan bahwa <strong>semua data dan dokumen yang saya berikan adalah benar</strong>, 
-              dan saya bersedia <strong>diproses sesuai hukum yang berlaku</strong> apabila terdapat 
-              keterangan palsu atau penyalahgunaan informasi.
-            </span>
-          </label>
+          {/* ✅ CHECKBOX PERSETUJUAN */}
+          <div className="bg-emerald-50 rounded-xl p-4 border-2 border-emerald-300">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={(e) => setChecked(e.target.checked)}
+                className="w-5 h-5 mt-0.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 focus:ring-2"
+                style={{ width: '20px', height: '20px' }}
+              />
+              <span className="text-xs text-slate-700 leading-relaxed">
+                Saya menyatakan bahwa <strong>semua data dan dokumen yang saya berikan adalah benar</strong>, 
+                dan saya bersedia <strong>diproses sesuai hukum yang berlaku</strong> apabila terdapat 
+                keterangan palsu atau penyalahgunaan informasi.
+              </span>
+            </label>
+          </div>
         </div>
 
         {/* Footer Actions */}
@@ -138,7 +172,11 @@ export default function ModalPernyataan({ formData, previewFiles, onConfirm, onC
             type="button"
             onClick={onConfirm}
             disabled={!checked || loading}
-            className="flex-1 bg-emerald-700 text-white py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-wider transition flex items-center justify-center gap-2 ${
+              !checked || loading
+                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                : 'bg-emerald-700 text-white hover:bg-emerald-800'
+            }`}
           >
             {loading ? (
               <>
