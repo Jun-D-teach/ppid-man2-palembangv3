@@ -8,3 +8,4 @@ coverage/
 !.env.example
 backend/uploads/1792277752174-Alur-Pengajuan-Permohonan-Informasi.jpeg
 backend/uploads/1792277752345-Formulir-Permohonan-Informasi-Publik.pdf
+/backend/uploads

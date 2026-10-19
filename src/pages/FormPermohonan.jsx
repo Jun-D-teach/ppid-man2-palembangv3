@@ -163,6 +163,214 @@ export default function FormPermohonan() {
   }
 };
 
+const handleCetakFormulir = async () => {
+  if (!validateForm()) {
+    alert("Mohon lengkapi semua field yang wajib diisi terlebih dahulu!");
+    return;
+  }
+
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  const contentWidth = pageWidth - 2 * margin;
+  let y = 15;
+
+  // ============================================
+  // HEADER - KOP SURAT
+  // ============================================
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('KEMENTERIAN AGAMA', pageWidth / 2, y, { align: 'center' });
+  y += 5;
+  doc.setFontSize(10);
+  doc.text('PEJABAT PENGELOLA INFORMASI DAN DOKUMENTASI (PPID)', pageWidth / 2, y, { align: 'center' });
+  y += 5;
+  doc.text('UNIT MADRASAH ALIYAH NEGERI 2 PALEMBANG', pageWidth / 2, y, { align: 'center' });
+  y += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('Alamat: Jl. Prof. K.H. Zainal Abidin Fikri (Komplek UIN Raden Fatah Palembang), 30126.', pageWidth / 2, y, { align: 'center' });
+  y += 4;
+  doc.text('Situs Website: https://ppid.man2plg.sch.id    WhatsApp Humas: 0821 8697 2771', pageWidth / 2, y, { align: 'center' });
+  y += 4;
+
+  // Keterangan
+  doc.setFontSize(7);
+  doc.text('Keterangan: * Diisi oleh petugas    ** Pilih salah satu dengan memberi tanda (✓)', pageWidth / 2, y, { align: 'center' });
+  y += 3;
+
+  // Garis bawah header
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 8;
+
+  // ============================================
+  // JUDUL FORMULIR
+  // ============================================
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('FORMULIR PERMOHONAN INFORMASI PUBLIK', pageWidth / 2, y, { align: 'center' });
+  y += 10;
+
+  // Nomor Pendaftaran
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Nomor Pendaftaran*: ....../PPID/MAN2PLG/PIP/..../20....', margin, y);
+  y += 10;
+
+  // ============================================
+  // DATA PEMOHON
+  // ============================================
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Yang bertandatangan di bawah ini, mengajukan permohonan informasi:', margin, y);
+  y += 8;
+
+  const drawField = (label, value, yPos) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const labelWidth = 45;
+    doc.text(label, margin, yPos);
+    doc.text(':', margin + labelWidth, yPos);
+    
+    // Garis titik-titik
+    const startX = margin + labelWidth + 5;
+    const endX = pageWidth - margin;
+    doc.setDrawColor(100);
+    doc.setLineWidth(0.2);
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(startX, yPos + 1, endX, yPos + 1);
+    
+    // Isi nilai di atas garis
+    doc.setFont('helvetica', 'bold');
+    const displayValue = String(value || '').substring(0, 60);
+    doc.text(displayValue, startX + 2, yPos);
+    doc.setLineDashPattern([], 0);
+    
+    return yPos + 7;
+  };
+
+  y = drawField('Nama Pemohon', formData.nama_lengkap, y);
+  y = drawField('Nomor KTP', formData.nomor_ktp, y);
+  y = drawField('Alamat Lengkap', formData.alamat, y);
+  y = drawField('Pekerjaan', formData.pekerjaan || '-', y);
+  y = drawField('Nomor Telepon/HP', formData.no_hp, y);
+  y = drawField('Email', formData.email_pemohon, y);
+  y += 3;
+
+  // ============================================
+  // RINCIAN PERMOHONAN
+  // ============================================
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Dengan ini bermaksud untuk mengajukan permohonan informasi, dengan rincian sebagai berikut:', margin, y);
+  y += 8;
+
+  // Rincian Informasi
+  doc.setFont('helvetica', 'bold');
+  doc.text('Rincian Informasi yang Dimohonkan:', margin, y);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  const rincianLines = doc.splitTextToSize(formData.rincian_informasi || '-', contentWidth - 10);
+  doc.text(rincianLines, margin + 5, y);
+  y += rincianLines.length * 5 + 3;
+
+  // Tujuan Penggunaan
+  doc.setFont('helvetica', 'bold');
+  doc.text('Tujuan Penggunaan Informasi:', margin, y);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  const tujuanLines = doc.splitTextToSize(formData.tujuan_penggunaan || '-', contentWidth - 10);
+  doc.text(tujuanLines, margin + 5, y);
+  y += tujuanLines.length * 5 + 5;
+
+  // ============================================
+  // CARA MEMPEROLEH INFORMASI (dengan checkbox)
+  // ============================================
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Cara Memperoleh Informasi**:', margin, y);
+  y += 6;
+
+  const drawCheckbox = (text, isChecked, xPos, yPos) => {
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.3);
+    doc.rect(xPos, yPos - 3, 4, 4);
+    if (isChecked) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('✓', xPos + 0.5, yPos);
+    }
+    doc.setFont('helvetica', 'normal');
+    doc.text(text, xPos + 7, yPos);
+    return yPos + 6;
+  };
+
+  const caraMemperolehOptions = [
+    'Melihat/membaca/mendengar/mencatat',
+    'Mendapat salinan informasi hard copy',
+    'Mendapat salinan informasi soft copy',
+  ];
+  caraMemperolehOptions.forEach((opt) => {
+    const isChecked = formData.cara_memperoleh === opt;
+    y = drawCheckbox(opt, isChecked, margin + 5, y);
+  });
+  y += 2;
+
+  // ============================================
+  // CARA MENDAPATKAN SALINAN (dengan checkbox)
+  // ============================================
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Cara Mendapatkan Salinan:', margin, y);
+  y += 6;
+
+  const caraSalinanOptions = [
+    'Mengambil langsung',
+    'Dikirim melalui email',
+    'Dikirim melalui whatsapp',
+    'Lainnya',
+  ];
+  caraSalinanOptions.forEach((opt) => {
+    const isChecked = formData.cara_salinan === opt;
+    y = drawCheckbox(opt, isChecked, margin + 5, y);
+  });
+  y += 5;
+
+  // ============================================
+  // PERNYATAAN
+  // ============================================
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(9);
+  const pernyataanText = 'Pemohon menyatakan bahwa informasi yang diperoleh akan digunakan sesuai dengan tujuan yang disampaikan serta mematuhi ketentuan peraturan perundang-undangan yang berlaku.';
+  const pernyataanLines = doc.splitTextToSize(pernyataanText, contentWidth);
+  doc.text(pernyataanLines, margin, y);
+  y += pernyataanLines.length * 5 + 15;
+
+  // ============================================
+  // TANDA TANGAN
+  // ============================================
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Palembang, .......................20.....', pageWidth - margin - 60, y);
+  y += 20;
+
+  doc.text('Petugas Layanan Informasi', margin + 20, y);
+  doc.text('Pemohon Informasi,', pageWidth - margin - 60, y);
+  y += 20;
+
+  doc.text('(..........................................)', margin + 20, y);
+  doc.text('(...................................................)', pageWidth - margin - 60, y);
+  y += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.text(formData.nama_lengkap, pageWidth - margin - 60, y, { align: 'center' });
+
+  // ============================================
+  // SIMPAN PDF
+  // ============================================
+  doc.save(`Formulir_Permohonan_${formData.nama_lengkap.replace(/\s+/g, '_')}.pdf`);
+};
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -344,23 +552,36 @@ export default function FormPermohonan() {
           </section>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard-user")}
-              className="flex-1 bg-white border-2 border-emerald-700 text-emerald-700 py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-50 transition"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmitClick}
-              disabled={loading}
-              className="flex-1 bg-emerald-700 text-white py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Mengirim..." : "Kirim Permohonan"}
-            </button>
-          </div>
+<div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-200">
+  <button
+  type="button"
+  onClick={handleCetakFormulir}
+  className="flex-1 bg-slate-100 text-slate-800 py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-slate-200 transition flex items-center justify-center gap-2"
+>
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+    </svg>
+    Cetak Formulir
+  </button>
+  <button
+    type="button"
+    onClick={handleSubmitClick}
+    disabled={loading}
+    className="flex-1 bg-emerald-700 text-white py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+  >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+    {loading ? "Mengirim..." : "Kirim Permohonan"}
+  </button>
+  <button
+    type="button"
+    onClick={() => navigate("/dashboard-user")}
+    className="flex-1 bg-white border-2 border-emerald-700 text-emerald-700 py-3 rounded-xl font-black uppercase text-xs tracking-wider hover:bg-emerald-50 transition"
+  >
+    Batal
+  </button>
+</div>
         </form>
 
        {showModal && (

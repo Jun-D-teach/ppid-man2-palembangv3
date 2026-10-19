@@ -9,6 +9,7 @@ import DashboardAdmin from "./pages/DashboardAdmin";
 import AccessibilityWidget from "./components/AccessibilityWidget";
 import Page from "./pages/page";
 import FormPermohonan from "./pages/FormPermohonan";
+import DetailPermohonan from "./pages/DetailPermohonan";
 
 
 // ==========================================
@@ -421,8 +422,9 @@ function App() {
             <Route path="/admin-ppid-man2" element={<DashboardAdmin />} />
             <Route path="/page/:slug" element={<Page />} />
             <Route path="/form-permohonan" element={<FormPermohonan />} />
+            <Route path="/permohonan/:id" element={<DetailPermohonan />} />
             <Route path="/permohonan-baru" element={<DashboardUser />} />
-<Route path="/dashboard-user" element={<DashboardUser />} />
+            <Route path="/dashboard-user" element={<DashboardUser />} />
           </Routes>
         </main>
 
