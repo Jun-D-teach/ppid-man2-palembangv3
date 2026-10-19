@@ -400,38 +400,6 @@ app.put(
 );
 
 /* =========================
-   INFORMASI PUBLIK
-========================= */
-
-app.get(
-  "/api/informasi-publik",
-  asyncHandler(async (req, res) => {
-    const [informasi] = await db.query(
-      "SELECT * FROM informasi_publik ORDER BY created_at DESC",
-    );
-
-    const [berkas] = await db.query(
-      "SELECT * FROM informasi_publik_berkas ORDER BY id ASC",
-    );
-
-    const result = informasi.map((item) => ({
-      ...item,
-      berkas_list: berkas
-        .filter((file) => Number(file.informasi_id) === Number(item.id))
-        .map((file) => ({
-          id: file.id,
-          nama_file: file.nama_file,
-          nama_asli: file.nama_asli,
-          mime_type: file.mime_type,
-          ukuran: file.ukuran,
-        })),
-    }));
-
-    res.json(result);
-  }),
-);
-
-/* =========================
    CEK STATUS LAYANAN
 ========================= */
 
